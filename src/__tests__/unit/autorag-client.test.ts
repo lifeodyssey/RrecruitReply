@@ -1,13 +1,13 @@
 import { AutoRAGClient } from '@/lib/autorag/client';
-import { server } from '../mocks/server';
-import { rest } from 'msw';
 
-// Setup mock server before tests
-beforeAll(() => server.listen());
-// Reset handlers after each test
-afterEach(() => server.resetHandlers());
-// Close server after all tests
-afterAll(() => server.close());
+// Store cleanup functions for fetch mocks
+const cleanupFunctions: Array<() => void> = [];
+
+// Clean up all fetch mocks after each test
+afterEach(() => {
+  cleanupFunctions.forEach(cleanup => cleanup());
+  cleanupFunctions.length = 0;
+});
 
 describe('AutoRAGClient', () => {
   const baseUrl = 'http://localhost:3000/api/autorag';
@@ -31,15 +31,15 @@ describe('AutoRAGClient', () => {
     });
 
     it('should handle errors when querying', async () => {
-      // Override the handler to return an error
-      server.use(
-        rest.post(`${baseUrl}/query`, (req, res, ctx) => {
-          return res(
-            ctx.status(500),
-            ctx.json({ error: 'Failed to query AutoRAG' })
-          );
-        })
-      );
+      // Register a custom fetch mock for the query endpoint
+      const cleanup = global.registerFetchMock('/query', 'POST', () => {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ error: 'Failed to query AutoRAG' }),
+        });
+      });
+      cleanupFunctions.push(cleanup);
 
       const query = 'What are the benefits?';
 
@@ -58,15 +58,15 @@ describe('AutoRAGClient', () => {
     });
 
     it('should handle errors when listing documents', async () => {
-      // Override the handler to return an error
-      server.use(
-        rest.get(`${baseUrl}/documents`, (req, res, ctx) => {
-          return res(
-            ctx.status(500),
-            ctx.json({ error: 'Failed to list documents' })
-          );
-        })
-      );
+      // Register a custom fetch mock for the documents endpoint
+      const cleanup = global.registerFetchMock('/documents', 'GET', () => {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ error: 'Failed to list documents' }),
+        });
+      });
+      cleanupFunctions.push(cleanup);
 
       await expect(client.listDocuments()).rejects.toThrow('Failed to list documents');
     });
@@ -83,17 +83,17 @@ describe('AutoRAGClient', () => {
     });
 
     it('should handle errors when deleting a document', async () => {
-      // Override the handler to return an error
-      server.use(
-        rest.delete(`${baseUrl}/documents/doc-1`, (req, res, ctx) => {
-          return res(
-            ctx.status(500),
-            ctx.json({ error: 'Failed to delete document' })
-          );
-        })
-      );
-
       const documentId = 'doc-1';
+
+      // Register a custom fetch mock for the delete document endpoint
+      const cleanup = global.registerFetchMock(`/documents/${documentId}`, 'DELETE', () => {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ error: 'Failed to delete document' }),
+        });
+      });
+      cleanupFunctions.push(cleanup);
 
       await expect(client.deleteDocument(documentId)).rejects.toThrow('Failed to delete document');
     });
