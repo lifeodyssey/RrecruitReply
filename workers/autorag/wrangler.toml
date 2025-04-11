@@ -1,0 +1,51 @@
+name = "recruitreply-autorag"
+main = "index.ts"
+compatibility_date = "2023-11-21"
+compatibility_flags = ["nodejs_compat"]
+
+# Configure Workers AI binding
+[ai]
+binding = "AI"
+
+# Configure Vector Index binding
+[[vectorize]]
+binding = "RECRUITREPLY_INDEX"
+index_name = "recruitreply-index"
+
+# Configure R2 bucket binding
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "recruitreply-documents"
+
+# Configure routes
+[routes]
+pattern = "autorag.recruitreply.example.com/*"
+custom_domain = true
+
+# Configure environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# Development environment
+[env.dev]
+name = "recruitreply-autorag-dev"
+[env.dev.vars]
+ENVIRONMENT = "development"
+[[env.dev.vectorize]]
+binding = "RECRUITREPLY_INDEX"
+index_name = "recruitreply-index-dev"
+[[env.dev.r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "recruitreply-documents-dev"
+
+# Staging environment
+[env.staging]
+name = "recruitreply-autorag-staging"
+[env.staging.vars]
+ENVIRONMENT = "staging"
+[[env.staging.vectorize]]
+binding = "RECRUITREPLY_INDEX"
+index_name = "recruitreply-index-staging"
+[[env.staging.r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "recruitreply-documents-staging"
