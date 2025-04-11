@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { autoragClient } from '@/lib/autorag/client';
+import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 
 /**
  * API route for uploading documents to the AutoRAG system
@@ -9,10 +10,7 @@ export async function POST(request: NextRequest) {
     // Check if the request is multipart/form-data
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
-      return NextResponse.json(
-        { error: 'Request must be multipart/form-data' },
-        { status: 400 }
-      );
+      throw new Error('Request must be multipart/form-data');
     }
 
     // Parse the form data
@@ -21,33 +19,17 @@ export async function POST(request: NextRequest) {
     const title = formData.get('title') as string | null;
     const source = formData.get('source') as string | null;
 
-    // Validate the request
-    if (!file) {
-      return NextResponse.json(
-        { error: 'File is required' },
-        { status: 400 }
-      );
-    }
-
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      );
-    }
-
-    // Upload the document to the AutoRAG system
-    const response = await autoragClient.uploadDocument(file, title, source || undefined);
+    // Upload the document using the document service
+    const response = await documentService.uploadDocument(
+      file as File,
+      title as string,
+      source || undefined
+    );
 
     // Return the response
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error uploading document to AutoRAG:', error);
-    
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to upload document' },
-      { status: 500 }
-    );
+    return ApiErrorHandler.handleError(error, 'Failed to upload document');
   }
 }
 

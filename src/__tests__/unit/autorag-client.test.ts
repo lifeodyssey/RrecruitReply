@@ -1,4 +1,4 @@
-import { AutoRAGClient } from '@/lib/autorag/client';
+import { AutoRAGRepository } from '@/infrastructure/repositories/autorag-repository';
 
 // Store cleanup functions for fetch mocks
 const cleanupFunctions: Array<() => void> = [];
@@ -9,13 +9,13 @@ afterEach(() => {
   cleanupFunctions.length = 0;
 });
 
-describe('AutoRAGClient', () => {
+describe('AutoRAGRepository', () => {
   const baseUrl = 'http://localhost:3000/api/autorag';
   const apiKey = 'test-api-key';
-  let client: AutoRAGClient;
+  let repository: AutoRAGRepository;
 
   beforeEach(() => {
-    client = new AutoRAGClient(baseUrl, apiKey);
+    repository = new AutoRAGRepository(baseUrl, apiKey);
   });
 
   describe('query', () => {
@@ -23,7 +23,7 @@ describe('AutoRAGClient', () => {
       const query = 'What are the benefits?';
       const conversationId = 'conv-123';
 
-      const response = await client.query(query, conversationId);
+      const response = await repository.query(query, conversationId);
 
       expect(response).toHaveProperty('answer');
       expect(response).toHaveProperty('sources');
@@ -43,13 +43,13 @@ describe('AutoRAGClient', () => {
 
       const query = 'What are the benefits?';
 
-      await expect(client.query(query)).rejects.toThrow('Failed to query AutoRAG');
+      await expect(repository.query(query)).rejects.toThrow('Failed to query AutoRAG');
     });
   });
 
   describe('listDocuments', () => {
     it('should list documents', async () => {
-      const documents = await client.listDocuments();
+      const documents = await repository.listDocuments();
 
       expect(Array.isArray(documents)).toBe(true);
       expect(documents.length).toBeGreaterThan(0);
@@ -68,7 +68,7 @@ describe('AutoRAGClient', () => {
       });
       cleanupFunctions.push(cleanup);
 
-      await expect(client.listDocuments()).rejects.toThrow('Failed to list documents');
+      await expect(repository.listDocuments()).rejects.toThrow('Failed to list documents');
     });
   });
 
@@ -76,7 +76,7 @@ describe('AutoRAGClient', () => {
     it('should delete a document', async () => {
       const documentId = 'doc-1';
 
-      const response = await client.deleteDocument(documentId);
+      const response = await repository.deleteDocument(documentId);
 
       expect(response).toHaveProperty('success', true);
       expect(response).toHaveProperty('documentId', documentId);
@@ -95,7 +95,7 @@ describe('AutoRAGClient', () => {
       });
       cleanupFunctions.push(cleanup);
 
-      await expect(client.deleteDocument(documentId)).rejects.toThrow('Failed to delete document');
+      await expect(repository.deleteDocument(documentId)).rejects.toThrow('Failed to delete document');
     });
   });
 

@@ -3,20 +3,27 @@ import { POST as queryHandler } from '@/app/api/autorag/query/route';
 import { GET as listDocumentsHandler } from '@/app/api/autorag/documents/route';
 import { DELETE as deleteDocumentHandler } from '@/app/api/autorag/documents/[id]/route';
 
-// Mock the autoragClient
-jest.mock('@/lib/autorag/client', () => ({
-  autoragClient: {
-    query: jest.fn().mockResolvedValue({
-      answer: 'This is a sample answer to your query.',
-      sources: [
-        {
-          id: 'doc-1',
-          title: 'Sample Resume',
-          source: 'Resume',
-          content: 'Sample content from the document that matches the query.',
-          similarity: 0.95,
-        },
-      ],
+// Mock the document service
+jest.mock('@/infrastructure/factories/document-service-factory', () => ({
+  documentService: {
+    query: jest.fn().mockImplementation(queryDto => {
+      // Validate the query and throw an error if it's missing
+      if (!queryDto.query) {
+        throw new Error('Query is required and must be a string');
+      }
+
+      return Promise.resolve({
+        answer: 'This is a sample answer to your query.',
+        sources: [
+          {
+            id: 'doc-1',
+            title: 'Sample Resume',
+            source: 'Resume',
+            content: 'Sample content from the document that matches the query.',
+            similarity: 0.95,
+          },
+        ],
+      });
     }),
     listDocuments: jest.fn().mockResolvedValue([
       {
@@ -34,9 +41,16 @@ jest.mock('@/lib/autorag/client', () => ({
         chunks: 2,
       },
     ]),
-    deleteDocument: jest.fn().mockResolvedValue({
-      success: true,
-      documentId: 'doc-1',
+    deleteDocument: jest.fn().mockImplementation(documentId => {
+      // Validate the document ID and throw an error if it's missing
+      if (!documentId) {
+        throw new Error('Document ID is required');
+      }
+
+      return Promise.resolve({
+        success: true,
+        documentId,
+      });
     }),
   },
 }));
@@ -82,10 +96,10 @@ describe('API Routes', () => {
       expect(data).toHaveProperty('error');
     });
 
-    it('handles errors from the AutoRAG client', async () => {
-      // Mock the autoragClient.query to throw an error
-      const autoragClient = require('@/lib/autorag/client').autoragClient;
-      autoragClient.query.mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
+    it('handles errors from the document service', async () => {
+      // Mock the documentService.query to throw an error
+      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
+      documentService.query.mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/query', {
@@ -125,10 +139,10 @@ describe('API Routes', () => {
       expect(data[1]).toHaveProperty('id', 'doc-2');
     });
 
-    it('handles errors from the AutoRAG client', async () => {
-      // Mock the autoragClient.listDocuments to throw an error
-      const autoragClient = require('@/lib/autorag/client').autoragClient;
-      autoragClient.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
+    it('handles errors from the document service', async () => {
+      // Mock the documentService.listDocuments to throw an error
+      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
+      documentService.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents', {
@@ -177,10 +191,10 @@ describe('API Routes', () => {
       expect(data).toHaveProperty('error', 'Document ID is required');
     });
 
-    it('handles errors from the AutoRAG client', async () => {
-      // Mock the autoragClient.deleteDocument to throw an error
-      const autoragClient = require('@/lib/autorag/client').autoragClient;
-      autoragClient.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
+    it('handles errors from the document service', async () => {
+      // Mock the documentService.deleteDocument to throw an error
+      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
+      documentService.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents/doc-1', {
