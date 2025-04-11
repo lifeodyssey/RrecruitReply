@@ -1,0 +1,14 @@
+# Cloudflare credentials
+cloudflare_api_token = "your-cloudflare-api-token"
+cloudflare_account_id = "your-cloudflare-account-id"
+cloudflare_zone_id = "your-cloudflare-zone-id"
+
+# Resource names
+r2_bucket_name = "recruitreply-documents"
+d1_database_name = "recruitreply-db"
+kv_namespace_name = "recruitreply-sessions"
+pages_project_name = "recruitreply"
+
+# Deployment configuration
+production_branch = "main"
+domain_name = "recruitreply.example.com"
