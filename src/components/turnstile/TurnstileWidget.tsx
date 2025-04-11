@@ -44,7 +44,7 @@ export function TurnstileWidget({
   className = '',
 }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [widgetId, setWidgetId] = useState<string | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Wait for Turnstile to be loaded
@@ -61,15 +61,15 @@ export function TurnstileWidget({
       theme,
     });
 
-    setWidgetId(id);
+    widgetIdRef.current = id;
 
     // Clean up on unmount
     return () => {
-      if (window.turnstile && widgetId) {
-        window.turnstile.reset(widgetId);
+      if (window.turnstile && widgetIdRef.current) {
+        window.turnstile.reset(widgetIdRef.current);
       }
     };
-  }, [siteKey, onVerify, onExpire, onError, theme, widgetId]);
+  }, [siteKey, onVerify, onExpire, onError, theme]);
 
   return <div ref={containerRef} className={className} data-testid="turnstile-container" />;
 }
