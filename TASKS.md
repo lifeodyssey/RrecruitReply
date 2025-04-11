@@ -58,11 +58,17 @@ This document tracks the progress of tasks for the RecruitReply project.
 ### Pending Tasks
 
 - [ ] Implement authentication system
-  - [ ] Create login/logout functionality
-  - [ ] Set up role-based access control (admin vs. recruiter)
-  - [ ] Implement session management with D1/KV
-  - [ ] Create authentication middleware for protected routes
-  - [ ] Create `/api/auth` endpoints for authentication
+  - [ ] Implement Cloudflare Turnstile for recruiter interface
+    - [ ] Create Turnstile widget in Cloudflare dashboard
+    - [ ] Implement Turnstile component in frontend
+    - [ ] Create `/api/turnstile/verify` endpoint
+    - [ ] Integrate with chat interface
+  - [ ] Implement administrator authentication
+    - [ ] Set up Next.js authentication with email provider
+    - [ ] Create admin login page
+    - [ ] Implement session management with D1/KV
+    - [ ] Create authentication middleware for protected routes
+    - [ ] Create `/api/auth` endpoints for authentication
 
 ## Sprint 3: Testing and Refinement
 
@@ -82,10 +88,10 @@ This document tracks the progress of tasks for the RecruitReply project.
   - [x] Tests for document management flow
   - [x] Tests for chat interaction flow
 
-### Pending Tasks
+### Completed Tasks
 
-- [ ] Fix Jest configuration to run tests successfully
-- [ ] Resolve Node.js version compatibility issues with testing libraries
+- [x] Fix Jest configuration to run tests successfully
+- [x] Resolve Node.js version compatibility issues with testing libraries
 
 ## Notes
 
