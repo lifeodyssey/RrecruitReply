@@ -1,125 +1,61 @@
-# RecruitReply
+# RecruitReply（リクルートリプライ）
 
-A RAG (Retrieval-Augmented Generation) system for recruitment agents to reduce time spent answering repetitive questions.
+## 概要
 
-## Project Overview
+RecruitReplyは、採用担当者の業務効率を向上させるためのAIアシスタントシステムです。よくある質問に対して、蓄積された知識から迅速かつ正確な回答を提供します。
 
-RecruitReply is an AI-powered recruitment assistant that helps recruitment agents quickly answer common questions by leveraging a RAG system built on Cloudflare's infrastructure. The system allows for document management, where administrators can upload recruitment-related documents that the AI uses to generate accurate responses.
+## 主な特徴
 
-## Technology Stack
+- **AIを活用した回答生成**: 採用関連の質問に対して、AIが適切な回答を生成します
+- **簡単な操作**: シンプルなチャットインターフェースで、誰でも簡単に利用できます
+- **知識ベースの活用**: 採用関連の文書から情報を抽出し、回答の質を向上させます
+- **時間の節約**: 繰り返し発生する質問への対応時間を大幅に削減します
+- **一貫性のある回答**: すべての採用担当者が同じ質の回答を提供できます
 
-- **Frontend & Backend**: Next.js 15 with App Router
-- **UI Components**: shadcn/ui (based on Tailwind CSS)
-- **Styling**: Tailwind CSS
-- **Language**: TypeScript
-- **Deployment**: Cloudflare Pages
-- **RAG System**: Cloudflare AutoRAG
-- **Storage**: Cloudflare R2
+## 利用方法
 
-## Requirements
+### 採用担当者向け
 
-- Node.js 18.18.0 or later
-- npm 8.x or later
+1. ブラウザでRecruitReplyにアクセスします
+2. 人間確認（CAPTCHA）を完了します
+3. チャットインターフェースで質問を入力します
+4. AIが回答を生成するまで少々お待ちください
+5. 必要に応じて、フォローアップの質問をすることもできます
 
-## Project Structure
+### 管理者向け
 
-```
-recruit-reply/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/                # API routes
-│   │   ├── chat/               # Chat interface
-│   │   ├── documents/          # Document management
-│   │   ├── globals.css         # Global styles
-│   │   ├── layout.tsx          # Root layout
-│   │   └── page.tsx            # Home page
-│   ├── components/             # React components
-│   │   ├── layout/             # Layout components
-│   │   │   ├── footer.tsx      # Footer component
-│   │   │   ├── header.tsx      # Header component
-│   │   │   ├── main-layout.tsx # Main layout wrapper
-│   │   │   └── mode-toggle.tsx # Dark/light mode toggle
-│   │   └── ui/                 # UI components from shadcn/ui
-│   ├── features/               # Feature-specific code
-│   │   ├── auth/               # Authentication
-│   │   ├── chat/               # Chat functionality
-│   │   └── documents/          # Document management
-│   ├── infrastructure/         # Infrastructure code
-│   │   └── cloudflare/         # Cloudflare-specific code
-│   └── lib/                    # Utility functions and shared code
-│       └── utils/              # Utility functions
-├── public/                     # Static assets
-├── components.json             # shadcn/ui configuration
-├── next.config.ts              # Next.js configuration
-├── package.json                # Project dependencies
-├── postcss.config.mjs          # PostCSS configuration
-├── tailwind.config.js          # Tailwind CSS configuration
-└── tsconfig.json               # TypeScript configuration
-```
+1. 管理者ログイン画面からアクセスします
+2. 認証情報を入力してログインします
+3. 文書管理画面から新しい採用関連文書をアップロードできます
+4. システムの利用状況や効果を確認できます
 
-## Features
+## よくある質問
 
-- **Chat Interface**: A user-friendly chat interface for recruiters to ask questions and receive AI-generated responses.
-- **Document Management**: An interface for administrators to upload, view, and manage recruitment documents.
-- **Authentication**: Role-based access control to distinguish between recruiters and administrators.
-- **Dark Mode Support**: Toggle between light and dark themes.
+**Q: このシステムは何ができますか？**
+A: 採用プロセスに関する質問に対して、AIを活用して迅速かつ正確な回答を提供します。
 
-## Getting Started
+**Q: 個人情報は安全ですか？**
+A: はい。すべてのデータは暗号化され、適切なセキュリティ対策が施されています。個人情報の取り扱いには十分注意しています。
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+**Q: システムが回答できない質問はどうなりますか？**
+A: システムが適切な回答を生成できない場合は、その旨を通知し、人間の採用担当者に相談することをお勧めします。
 
-## Note
+**Q: 回答の精度はどのくらいですか？**
+A: システムは常に学習・改善されており、高い精度で回答を提供します。ただし、複雑な質問や特殊なケースでは、人間の判断が必要な場合もあります。
 
-This project requires Node.js version 18.18.0 or later to run Next.js 15 and React 19.
+## サポート
 
-## Testing
+システムの利用方法やトラブルシューティングについては、管理者にお問い合わせください。
 
-The project follows test-driven development principles with comprehensive test coverage.
+## 今後の展開
 
-### Running Tests
+- より多様な質問への対応
+- 多言語サポートの拡充
+- モバイルアプリの開発
+- 採用プロセス全体の自動化機能の追加
 
-```bash
-# Run all tests
-npm test
+---
 
-# Run tests in watch mode
-npm run test:watch
+RecruitReplyは、採用担当者の業務効率化と候補者体験の向上を目指して開発されました。
 
-# Run unit tests only
-npm run test:unit
-
-# Run integration tests only
-npm run test:integration
-
-# Run end-to-end tests only
-npm run test:e2e
-
-# Generate test coverage report
-npm run test:coverage
-```
-
-### Test Structure
-
-```
-src/__tests__/
-├── unit/             # Unit tests for components and functions
-├── integration/      # Integration tests for API routes
-├── e2e/              # End-to-end tests for user flows
-└── mocks/            # Test mocks and fixtures
-```
-
-## Next Steps
-
-- Implement authentication system
-- Enhance test coverage
-- Add performance optimizations
-- Implement advanced RAG features
+> **Note for Developers**: Technical documentation is available in [DEVELOPER.md](DEVELOPER.md). English documentation is available [here](docs/README_EN.md).
