@@ -53,7 +53,7 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
   };
 
   // Handle verification errors
-  const handleError = (error: any) => {
+  const handleError = (error: Error) => {
     console.error('Turnstile error:', error);
     setVerificationError('An error occurred with the verification widget. Please try again.');
   };

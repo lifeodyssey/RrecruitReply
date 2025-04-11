@@ -11,17 +11,17 @@ import { useSearchParams } from 'next/navigation';
 
 /**
  * Admin login page
- * 
+ *
  * This page provides a form for administrators to sign in using email authentication.
  */
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-  
+
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
           type: 'success',
         });
       }
-    } catch (error) {
+    } catch {
       setMessage({
         text: 'An error occurred. Please try again.',
         type: 'error',
@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
                 disabled={isLoading}
               />
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>

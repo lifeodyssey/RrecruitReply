@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { middleware } from '../middleware';
 
 // Mock NextRequest
-class MockNextRequest {
+class MockNextRequest implements Partial<NextRequest> {
   url: string;
   nextUrl: URL;
   headers: Headers;
-  cookies: any;
+  cookies: Record<string, string>;
 
   constructor(url: string) {
     this.url = url;
@@ -49,7 +49,7 @@ describe('Authentication Middleware', () => {
   it('allows access to non-admin routes', async () => {
     const request = new MockNextRequest('http://localhost:3000/');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).not.toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();
@@ -58,7 +58,7 @@ describe('Authentication Middleware', () => {
   it('allows access to admin login page', async () => {
     const request = new MockNextRequest('http://localhost:3000/admin/login');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).not.toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();
@@ -67,7 +67,7 @@ describe('Authentication Middleware', () => {
   it('allows access to admin error page', async () => {
     const request = new MockNextRequest('http://localhost:3000/admin/error');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).not.toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();
@@ -76,7 +76,7 @@ describe('Authentication Middleware', () => {
   it('redirects to login if not authenticated for admin routes', async () => {
     const request = new MockNextRequest('http://localhost:3000/admin/dashboard');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).toHaveBeenCalled();
     expect(NextResponse.redirect).toHaveBeenCalledWith(expect.any(URL));
@@ -96,7 +96,7 @@ describe('Authentication Middleware', () => {
 
     const request = new MockNextRequest('http://localhost:3000/admin/dashboard');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();
@@ -112,7 +112,7 @@ describe('Authentication Middleware', () => {
     });
 
     // Call the middleware
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     // Verify that getToken was called
     expect(getToken).toHaveBeenCalled();
@@ -130,7 +130,7 @@ describe('Authentication Middleware', () => {
 
     const request = new MockNextRequest('http://localhost:3000/api/admin/documents');
 
-    await middleware(request as any);
+    await middleware(request as unknown as NextRequest);
 
     expect(getToken).toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();

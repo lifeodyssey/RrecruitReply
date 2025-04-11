@@ -1,4 +1,5 @@
-import { NextRequest } from 'next/server';
+// NextRequest is imported but not used directly in this file
+// It's used in the mocked implementation
 import { POST } from '../route';
 
 // Mock fetch

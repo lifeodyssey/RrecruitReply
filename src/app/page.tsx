@@ -1,6 +1,6 @@
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 
 export default function Home() {
@@ -54,7 +54,7 @@ export default function Home() {
               <CardDescription>Fast, secure, and cost-effective</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Built on Cloudflare's infrastructure for optimal performance and security.</p>
+              <p>Built on Cloudflare&apos;s infrastructure for optimal performance and security.</p>
             </CardContent>
           </Card>
         </div>

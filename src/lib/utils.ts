@@ -39,7 +39,7 @@ export function generateId(): string {
 /**
  * Debounces a function
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -65,7 +65,7 @@ export function isValidEmail(email: string): boolean {
 export function safeJsonParse<T>(json: string, fallback: T): T {
   try {
     return JSON.parse(json) as T;
-  } catch (error) {
+  } catch {
     return fallback;
   }
 }

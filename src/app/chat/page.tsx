@@ -39,7 +39,7 @@ export default function ChatPage() {
       try {
         const parsedMessages = JSON.parse(savedMessages);
         // Convert string timestamps back to Date objects
-        const messagesWithDates = parsedMessages.map((msg: any) => ({
+        const messagesWithDates = parsedMessages.map((msg: Message & { timestamp: string }) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }));

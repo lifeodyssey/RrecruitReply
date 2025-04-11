@@ -37,7 +37,7 @@ export class MockDocumentRepository implements DocumentRepository {
   };
 
   // Mock implementations
-  async query(query: string, conversationId?: string): Promise<QueryResult> {
+  async query(query: string): Promise<QueryResult> {
     return this.mockQueryResult;
   }
 
@@ -53,9 +53,9 @@ export class MockDocumentRepository implements DocumentRepository {
       timestamp: Date.now(),
       chunks: 4
     };
-    
+
     this.mockDocuments.push(newDoc);
-    
+
     return {
       success: true,
       documentId: newDoc.id,
@@ -65,13 +65,13 @@ export class MockDocumentRepository implements DocumentRepository {
 
   async deleteDocument(documentId: string): Promise<DeleteResult> {
     const index = this.mockDocuments.findIndex(doc => doc.id === documentId);
-    
+
     if (index === -1) {
       throw new Error(`Document with ID ${documentId} not found`);
     }
-    
+
     this.mockDocuments.splice(index, 1);
-    
+
     return {
       success: true,
       documentId

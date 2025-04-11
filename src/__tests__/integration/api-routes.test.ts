@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { POST as queryHandler } from '@/app/api/autorag/query/route';
 import { GET as listDocumentsHandler } from '@/app/api/autorag/documents/route';
 import { DELETE as deleteDocumentHandler } from '@/app/api/autorag/documents/[id]/route';
+import { documentService } from '@/infrastructure/factories/document-service-factory';
 
 // Mock the document service
 jest.mock('@/infrastructure/factories/document-service-factory', () => ({
@@ -98,7 +99,6 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.query to throw an error
-      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
       documentService.query.mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
 
       // Create a mock request
@@ -141,7 +141,6 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.listDocuments to throw an error
-      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
       documentService.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
 
       // Create a mock request
@@ -193,7 +192,6 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.deleteDocument to throw an error
-      const documentService = require('@/infrastructure/factories/document-service-factory').documentService;
       documentService.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
 
       // Create a mock request

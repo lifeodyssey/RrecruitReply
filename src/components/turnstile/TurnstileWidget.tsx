@@ -11,7 +11,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           'expired-callback'?: () => void;
-          'error-callback'?: (error: any) => void;
+          'error-callback'?: (error: Error) => void;
           theme?: 'light' | 'dark' | 'auto';
         }
       ) => string;
@@ -24,7 +24,7 @@ interface TurnstileWidgetProps {
   siteKey: string;
   onVerify: (token: string) => void;
   onExpire?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: Error) => void;
   theme?: 'light' | 'dark' | 'auto';
   className?: string;
 }
@@ -69,7 +69,7 @@ export function TurnstileWidget({
         window.turnstile.reset(widgetId);
       }
     };
-  }, [siteKey, onVerify, onExpire, onError, theme]);
+  }, [siteKey, onVerify, onExpire, onError, theme, widgetId]);
 
   return <div ref={containerRef} className={className} data-testid="turnstile-container" />;
 }

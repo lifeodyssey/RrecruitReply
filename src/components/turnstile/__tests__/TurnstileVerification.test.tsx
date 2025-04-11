@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { TurnstileVerification } from '../TurnstileVerification';
 import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
 
