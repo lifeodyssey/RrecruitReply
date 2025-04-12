@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DocumentsPage from '@/app/documents/page';
 import { server } from '../mocks/server';
+import { FormDataIterator } from '../mocks/custom-iterators';
 
 // Setup mock server before tests
 beforeAll(() => server.listen());
@@ -27,14 +28,89 @@ describe('Document Management E2E', () => {
     const originalConfirm = window.confirm;
     window.confirm = jest.fn(() => true);
 
+    // Use FormDataIterator from the imported module
+
     // Mock the FormData and File
-    global.FormData = class FormData {
-      append = jest.fn();
-      get = jest.fn();
+    // Create a proper FormData mock that matches the expected interface
+    global.FormData = class MockFormData implements FormData {
+      private data: Map<string, any> = new Map();
+
+      // Add Symbol.toStringTag property required by FormData
+      readonly [Symbol.toStringTag]: string = 'FormData';
+
+      append(name: string, value: string | Blob, fileName?: string): void {
+        this.data.set(name, { value, fileName });
+      }
+
+      delete(name: string): void {
+        this.data.delete(name);
+      }
+
+      get(name: string): FormDataEntryValue | null {
+        const entry = this.data.get(name);
+        return entry ? entry.value : null;
+      }
+
+      getAll(name: string): FormDataEntryValue[] {
+        const entry = this.data.get(name);
+        return entry ? [entry.value] : [];
+      }
+
+      has(name: string): boolean {
+        return this.data.has(name);
+      }
+
+      set(name: string, value: string | Blob, fileName?: string): void {
+        this.data.set(name, { value, fileName });
+      }
+
+      forEach(callbackfn: (value: FormDataEntryValue, key: string, parent: FormData) => void): void {
+        // Create a proper FormData object for the callback
+        const formData = this as FormData;
+        this.data.forEach((entry, key) => callbackfn(entry.value, key, formData));
+      }
+
+      // Use proper FormDataIterator with all required methods
+      entries(): FormDataIterator<[string, FormDataEntryValue]> {
+        const entriesArray = Array.from(this.data.entries())
+          .map(([key, entry]) => [key, entry.value] as [string, FormDataEntryValue]);
+        return new FormDataIterator(entriesArray[Symbol.iterator]());
+      }
+
+      keys(): FormDataIterator<string> {
+        return new FormDataIterator(this.data.keys());
+      }
+
+      values(): FormDataIterator<FormDataEntryValue> {
+        const valuesArray = Array.from(this.data.values())
+          .map(entry => entry.value as FormDataEntryValue);
+        return new FormDataIterator(valuesArray[Symbol.iterator]());
+      }
+
+      [Symbol.iterator](): FormDataIterator<[string, FormDataEntryValue]> {
+        return this.entries();
+      }
     };
-    global.File = class File {
-      constructor() {
-        return {};
+
+    global.File = class MockFile implements File {
+      name: string;
+      lastModified: number = Date.now();
+      webkitRelativePath: string = '';
+      size: number;
+      type: string;
+      arrayBuffer: () => Promise<ArrayBuffer> = () => Promise.resolve(new ArrayBuffer(0));
+      bytes: () => Promise<Uint8Array> = () => Promise.resolve(new Uint8Array());
+      slice: (start?: number, end?: number, contentType?: string) => Blob = () => new Blob([]);
+      stream: () => ReadableStream = () => new ReadableStream();
+      text: () => Promise<string> = () => Promise.resolve('');
+
+      constructor(bits: BlobPart[] = [], name: string = 'mock-file.txt', options: FilePropertyBag = {}) {
+        this.name = name;
+        this.size = 0;
+        this.type = options.type || 'text/plain';
+        if (options.lastModified) {
+          this.lastModified = options.lastModified;
+        }
       }
     };
 
@@ -81,7 +157,7 @@ describe('Document Management E2E', () => {
 
         // Mock the file input change
         Object.defineProperty(fileInput, 'files', {
-          value: [new File()],
+          value: [new File([], 'test-file.txt', { type: 'text/plain' })],
         });
         fireEvent.change(fileInput);
 

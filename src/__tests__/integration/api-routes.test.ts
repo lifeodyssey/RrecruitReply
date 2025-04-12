@@ -99,7 +99,7 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.query to throw an error
-      documentService.query.mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
+      jest.spyOn(documentService, 'query').mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/query', {
@@ -128,7 +128,7 @@ describe('API Routes', () => {
       });
 
       // Call the handler
-      const response = await listDocumentsHandler(request);
+      const response = await listDocumentsHandler();
 
       // Check the response
       expect(response.status).toBe(200);
@@ -141,7 +141,7 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.listDocuments to throw an error
-      documentService.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
+      jest.spyOn(documentService, 'listDocuments').mockRejectedValueOnce(new Error('Failed to list documents'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents', {
@@ -149,7 +149,7 @@ describe('API Routes', () => {
       });
 
       // Call the handler
-      const response = await listDocumentsHandler(request);
+      const response = await listDocumentsHandler();
 
       // Check the response
       expect(response.status).toBe(500);
@@ -192,7 +192,7 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.deleteDocument to throw an error
-      documentService.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
+      jest.spyOn(documentService, 'deleteDocument').mockRejectedValueOnce(new Error('Failed to delete document'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents/doc-1', {

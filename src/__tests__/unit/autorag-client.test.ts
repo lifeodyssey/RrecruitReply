@@ -33,11 +33,9 @@ describe('AutoRAGRepository', () => {
     it('should handle errors when querying', async () => {
       // Register a custom fetch mock for the query endpoint
       const cleanup = global.registerFetchMock('/query', 'POST', () => {
-        return Promise.resolve({
-          ok: false,
-          status: 500,
-          json: () => Promise.resolve({ error: 'Failed to query AutoRAG' }),
-        });
+        return Promise.resolve(new Response(JSON.stringify({ error: 'Failed to query AutoRAG' }), {
+          status: 500
+        }));
       });
       cleanupFunctions.push(cleanup);
 
@@ -60,11 +58,9 @@ describe('AutoRAGRepository', () => {
     it('should handle errors when listing documents', async () => {
       // Register a custom fetch mock for the documents endpoint
       const cleanup = global.registerFetchMock('/documents', 'GET', () => {
-        return Promise.resolve({
-          ok: false,
-          status: 500,
-          json: () => Promise.resolve({ error: 'Failed to list documents' }),
-        });
+        return Promise.resolve(new Response(JSON.stringify({ error: 'Failed to list documents' }), {
+          status: 500
+        }));
       });
       cleanupFunctions.push(cleanup);
 
@@ -87,11 +83,9 @@ describe('AutoRAGRepository', () => {
 
       // Register a custom fetch mock for the delete document endpoint
       const cleanup = global.registerFetchMock(`/documents/${documentId}`, 'DELETE', () => {
-        return Promise.resolve({
-          ok: false,
-          status: 500,
-          json: () => Promise.resolve({ error: 'Failed to delete document' }),
-        });
+        return Promise.resolve(new Response(JSON.stringify({ error: 'Failed to delete document' }), {
+          status: 500
+        }));
       });
       cleanupFunctions.push(cleanup);
 

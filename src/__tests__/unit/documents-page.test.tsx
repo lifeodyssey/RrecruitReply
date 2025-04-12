@@ -103,11 +103,9 @@ describe('DocumentsPage', () => {
   it('handles errors when fetching documents', async () => {
     // Register a custom fetch mock for the documents endpoint
     const cleanup = global.registerFetchMock('/documents', 'GET', () => {
-      return Promise.resolve({
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({ error: 'Failed to fetch documents' }),
-      });
+      return Promise.resolve(new Response(JSON.stringify({ error: 'Failed to fetch documents' }), {
+        status: 500
+      }));
     });
     cleanupFunctions.push(cleanup);
 

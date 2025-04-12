@@ -1,5 +1,8 @@
 import { rest } from './msw-mock';
 
+// Import types from msw-mock.ts
+import type { ResponseContext, ResponseTransformer, RestHandler, MockResponse } from './msw-mock';
+
 // Sample document data
 const sampleDocuments = [
   {
@@ -35,37 +38,45 @@ const sampleQueryResponse = {
 // Define handlers for the mock API endpoints
 export const handlers = [
   // GET /api/autorag/documents - List documents
-  rest.get('/api/autorag/documents', (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(sampleDocuments));
+  rest.get('/api/autorag/documents', (_req, res, ctx) => {
+    // Create a mock response with the sample documents
+    return { status: 200, data: sampleDocuments };
   }),
 
   // POST /api/autorag/upload - Upload document
-  rest.post('/api/autorag/upload', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
+  rest.post('/api/autorag/upload', (_req, res, ctx) => {
+    // Create a mock response with the upload result
+    return {
+      status: 200,
+      data: {
         success: true,
         documentId: 'new-doc-id',
         chunks: 4,
-      })
-    );
+      }
+    };
   }),
 
   // DELETE /api/autorag/documents/:id - Delete document
   rest.delete('/api/autorag/documents/:id', (req, res, ctx) => {
-    const { id } = req.params;
-    return res(
-      ctx.status(200),
-      ctx.json({
+    // Safely access params
+    const id = typeof req === 'object' && req !== null && 'params' in req
+      ? (req.params as Record<string, string>).id
+      : 'unknown-id';
+
+    // Create a mock response with the delete result
+    return {
+      status: 200,
+      data: {
         success: true,
         documentId: id,
-      })
-    );
+      }
+    };
   }),
 
   // POST /api/autorag/query - Query the RAG system
-  rest.post('/api/autorag/query', (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(sampleQueryResponse));
+  rest.post('/api/autorag/query', (_req, res, ctx) => {
+    // Create a mock response with the query result
+    return { status: 200, data: sampleQueryResponse };
   }),
 ];
 
@@ -77,7 +88,7 @@ describe('Handlers', () => {
     expect(sampleQueryResponse).toBeDefined();
     expect(sampleQueryResponse.sources.length).toBe(1);
   });
-  
+
   it('should have handlers defined', () => {
     expect(handlers).toBeDefined();
     expect(Array.isArray(handlers)).toBe(true);

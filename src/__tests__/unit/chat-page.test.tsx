@@ -84,11 +84,9 @@ describe('ChatPage', () => {
   it('handles errors when querying', async () => {
     // Register a custom fetch mock for the query endpoint
     const cleanup = global.registerFetchMock('/query', 'POST', () => {
-      return Promise.resolve({
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({ error: 'Failed to query' }),
-      });
+      return Promise.resolve(new Response(JSON.stringify({ error: 'Failed to query' }), {
+        status: 500
+      }));
     });
     cleanupFunctions.push(cleanup);
 
