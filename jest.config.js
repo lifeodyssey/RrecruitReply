@@ -1,5 +1,10 @@
 /** @type {import('jest').Config} */
 const config = {
+  // Use the test-specific Babel config
+  rootDir: '.',
+  transform: {
+    '^.+\.(ts|tsx|js|jsx)$': ['babel-jest', { configFile: './babel.config.test.js' }]
+  },
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
@@ -12,21 +17,7 @@ const config = {
     // https://jestjs.io/docs/webpack#handling-static-assets
     '\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/__tests__/mocks/fileMock.js'
   },
-  transform: {
-    '^.+\.(ts|tsx)$': ['babel-jest', {
-      presets: [
-        ['@babel/preset-env', { targets: { node: 'current' } }],
-        '@babel/preset-typescript',
-        ['@babel/preset-react', { runtime: 'automatic' }]
-      ]
-    }],
-    '^.+\.(js|jsx)$': ['babel-jest', {
-      presets: [
-        ['@babel/preset-env', { targets: { node: 'current' } }],
-        ['@babel/preset-react', { runtime: 'automatic' }]
-      ]
-    }]
-  },
+
   transformIgnorePatterns: [
     '/node_modules/(?!(msw|@mswjs)/).+\.js$'
   ],
