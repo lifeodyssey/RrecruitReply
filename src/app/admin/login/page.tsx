@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,17 +10,24 @@ import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 /**
- * Admin login page
- *
- * This page provides a form for administrators to sign in using email authentication.
+ * Component that uses useSearchParams() hook
+ * This must be wrapped in a Suspense boundary
  */
-export default function AdminLoginPage() {
+function SearchParamsProvider({ children }: { children: (callbackUrl: string) => React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
+
+  return <>{children(callbackUrl)}</>;
+}
+
+/**
+ * Login form component that receives the callbackUrl as a prop
+ * instead of using useSearchParams directly
+ */
+function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,5 +109,38 @@ export default function AdminLoginPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+/**
+ * Login page wrapper component
+ * Properly wraps components using useSearchParams in Suspense
+ */
+function LoginPageContent() {
+  return (
+    <SearchParamsProvider>
+      {(callbackUrl) => <LoginForm callbackUrl={callbackUrl} />}
+    </SearchParamsProvider>
+  );
+}
+
+/**
+ * Admin login page
+ *
+ * This page provides a form for administrators to sign in using email authentication.
+ */
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }
