@@ -5,17 +5,15 @@ import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 /**
  * API route for deleting a document from the AutoRAG system
  */
+
+// Export a function that matches Next.js 15 App Router's expected signature
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
-
-    // Delete the document using the document service
+    const { id } = await params;
     const response = await documentService.deleteDocument(id);
-
-    // Return the response
     return NextResponse.json(response);
   } catch (error) {
     return ApiErrorHandler.handleError(error, 'Failed to delete document');

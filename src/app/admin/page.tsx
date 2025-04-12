@@ -8,18 +8,18 @@ import { redirect } from 'next/navigation';
 
 /**
  * Admin dashboard page
- * 
+ *
  * This page serves as the main dashboard for administrators.
  * It's protected by the middleware and requires authentication.
  */
 export default function AdminDashboardPage() {
   const { data: session, status } = useSession();
-  
+
   // If not authenticated, redirect to login
   if (status === 'unauthenticated') {
     redirect('/admin/login');
   }
-  
+
   // Show loading state while checking session
   if (status === 'loading') {
     return (
@@ -29,12 +29,12 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
-  
+
   // Handle sign out
   const handleSignOut = () => {
     signOut({ callbackUrl: '/' });
   };
-  
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-8">
@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
           Sign Out
         </Button>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
@@ -63,7 +63,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardFooter>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>System Status</CardTitle>
@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
             </Button>
           </CardFooter>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>User Session</CardTitle>
@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
                 <span className="font-medium">Email:</span> {session?.user?.email}
               </p>
               <p className="text-sm">
-                <span className="font-medium">Role:</span> {session?.user?.role || 'admin'}
+                <span className="font-medium">Role:</span> {(session?.user as any)?.role || 'admin'}
               </p>
             </div>
           </CardContent>
