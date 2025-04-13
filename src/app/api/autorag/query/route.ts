@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 import { QueryRequestDto } from '@/application/dtos/document-dtos';
 
 /**
  * API route for querying the AutoRAG system
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     // Parse the request body
     const body = await request.json() as QueryRequestDto;
 
-    // Query the document service
+    // Get the document service and query it
+    const documentService = getDocumentService();
     const response = await documentService.query(body);
 
     // Return the response

@@ -8,15 +8,7 @@
 // Import types from types.d.ts
 /// <reference path="./types.d.ts" />
 
-// Define environment bindings
-interface Env {
-  // Vector index for document search
-  RECRUITREPLY_INDEX: any; // VectorizeIndex type from types.d.ts
-  // R2 bucket for document storage
-  DOCUMENTS: any; // R2Bucket type from types.d.ts
-  // Workers AI binding
-  AI: any;
-}
+// Use the Env interface from types.d.ts
 
 // Document metadata structure
 interface DocumentMetadata {
@@ -44,7 +36,7 @@ export default {
   /**
    * Handle incoming requests to the worker
    */
-  async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // Set up CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -118,8 +110,9 @@ export default {
 
       // Retrieve the full content of the matched documents
       const sources = await Promise.all(
-        results.matches.map(async (match: any) => {
-          const metadata = match.metadata as DocumentMetadata;
+        results.matches.map(async (match) => {
+          // Cast to unknown first, then to DocumentMetadata
+          const metadata = match.metadata as unknown as DocumentMetadata;
           const documentKey = `${metadata.id}/chunk_${metadata.chunkIndex}.txt`;
 
           // Get the document chunk from R2
@@ -137,7 +130,7 @@ export default {
       );
 
       // Combine the document contents to create context for the LLM
-      const context = sources.map((source: any) => source.content).join('\n\n');
+      const context = sources.map((source) => source.content).join('\n\n');
 
       // Generate a response using the LLM
       const prompt = `
@@ -160,7 +153,7 @@ Answer:`;
       // Return the response with sources
       return new Response(
         JSON.stringify({
-          answer: response.response,
+          answer: (response as { response: string }).response,
           sources,
         } as QueryResponse),
         {
@@ -213,8 +206,12 @@ Answer:`;
       // Store the original document in R2
       await env.DOCUMENTS.put(`${documentId}/original.txt`, content);
 
+      // Configuration for chunking
+      const CHUNK_SIZE = 1000;
+      const CHUNK_OVERLAP = 200;
+
       // Split the document into chunks for embedding
-      const chunks = this.chunkDocument(content, 1000, 200);
+      const chunks = this.chunkDocument(content, CHUNK_SIZE, CHUNK_OVERLAP);
 
       // Process each chunk
       for (let i = 0; i < chunks.length; i++) {
@@ -237,7 +234,7 @@ Answer:`;
             timestamp,
             chunkIndex: i,
             totalChunks: chunks.length,
-          } as DocumentMetadata,
+          } as unknown as Record<string, unknown>,
         });
       }
 
@@ -301,7 +298,7 @@ Answer:`;
 
           if (results.matches.length === 0) return null;
 
-          const metadata = results.matches[0].metadata as DocumentMetadata;
+          const metadata = results.matches[0].metadata as unknown as DocumentMetadata;
           return {
             id: metadata.id,
             title: metadata.title,
@@ -363,7 +360,9 @@ Answer:`;
       });
 
       for (const match of results.matches) {
-        await env.RECRUITREPLY_INDEX.delete(match.id);
+        // Cast to string to ensure type safety
+        const matchId = String(match.id);
+        await env.RECRUITREPLY_INDEX.deleteByIds([matchId]);
       }
 
       return new Response(
@@ -395,7 +394,8 @@ Answer:`;
       text: [text],
     });
 
-    return response.data[0];
+    // Ensure proper type casting of the response
+    return (response as { data: number[][] }).data[0];
   },
 
   /**

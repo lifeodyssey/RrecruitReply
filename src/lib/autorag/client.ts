@@ -1,9 +1,10 @@
 /**
  * AutoRAG Client
- * 
+ *
  * This module provides a client for interacting with the AutoRAG API.
  * It's used by the frontend components to communicate with the backend.
  */
+import { ValidationError, NotFoundError, InternalServerError } from '@/application/errors/application-errors';
 
 /**
  * Interface for document information returned by the API
@@ -71,7 +72,15 @@ export class AutoRAGClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to query AutoRAG');
+      const errorMessage = error.error || 'Failed to query AutoRAG';
+
+      if (response.status === 400) {
+        throw new ValidationError(errorMessage);
+      } else if (response.status === 404) {
+        throw new NotFoundError(errorMessage);
+      } else {
+        throw new InternalServerError(errorMessage);
+      }
     }
 
     return response.json();
@@ -84,7 +93,7 @@ export class AutoRAGClient {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
-    
+
     if (source) {
       formData.append('source', source);
     }
@@ -96,7 +105,13 @@ export class AutoRAGClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to upload document');
+      const errorMessage = error.error || 'Failed to upload document';
+
+      if (response.status === 400) {
+        throw new ValidationError(errorMessage);
+      } else {
+        throw new InternalServerError(errorMessage);
+      }
     }
 
     return response.json();
@@ -112,7 +127,9 @@ export class AutoRAGClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to list documents');
+      const errorMessage = error.error || 'Failed to list documents';
+
+      throw new InternalServerError(errorMessage);
     }
 
     return response.json();
@@ -128,9 +145,18 @@ export class AutoRAGClient {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to delete document');
+      const errorMessage = error.error || 'Failed to delete document';
+
+      if (response.status === 404) {
+        throw new NotFoundError(errorMessage);
+      } else {
+        throw new InternalServerError(errorMessage);
+      }
     }
 
     return response.json();
   }
 }
+
+// Export a singleton instance for convenience
+export const autoragClient = new AutoRAGClient();

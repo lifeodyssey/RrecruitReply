@@ -10,7 +10,7 @@ interface VectorizeIndex {
   insert(params: {
     id: string;
     values: number[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): Promise<void>;
 
   /**
@@ -20,14 +20,14 @@ interface VectorizeIndex {
     vector: number[],
     options?: {
       topK?: number;
-      filter?: Record<string, any>;
+      filter?: Record<string, unknown>;
       returnMetadata?: boolean;
     }
   ): Promise<{
     matches: Array<{
       id: string;
       score: number;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }>;
   }>;
 
@@ -38,7 +38,7 @@ interface VectorizeIndex {
     vectors: Array<{
       id: string;
       values: number[];
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     }>;
   }>;
 
@@ -116,7 +116,7 @@ interface ExecutionContext {
   /**
    * Wait until the promise resolves
    */
-  waitUntil(promise: Promise<any>): void;
+  waitUntil(promise: Promise<unknown>): void;
 
   /**
    * Pass the request to the next handler
@@ -124,14 +124,22 @@ interface ExecutionContext {
   passThroughOnException(): void;
 }
 
+// Cloudflare Workers AI
+interface WorkersAI {
+  /**
+   * Run a model with the given inputs
+   */
+  run<T = unknown>(model: string, inputs: Record<string, unknown>): Promise<T>;
+}
+
 // Environment interface for the worker
 interface Env {
   // Vectorize index
   RECRUITREPLY_INDEX: VectorizeIndex;
-  
+
   // R2 bucket
   DOCUMENTS: R2Bucket;
-  
-  // Other bindings
-  AI: any;
+
+  // Workers AI binding
+  AI: WorkersAI;
 }

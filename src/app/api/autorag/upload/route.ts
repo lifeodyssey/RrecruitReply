@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { ValidationError } from '@/application/errors/application-errors';
 
 /**
  * API route for uploading documents to the AutoRAG system
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     // Check if the request is multipart/form-data
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
-      throw new Error('Request must be multipart/form-data');
+      throw new ValidationError('Request must be multipart/form-data');
     }
 
     // Parse the form data
@@ -19,10 +20,20 @@ export async function POST(request: NextRequest) {
     const title = formData.get('title') as string | null;
     const source = formData.get('source') as string | null;
 
-    // Upload the document using the document service
+    // Validate inputs
+    if (!file) {
+      throw new ValidationError('File is required');
+    }
+
+    if (!title) {
+      throw new ValidationError('Title is required');
+    }
+
+    // Get the document service and upload the document
+    const documentService = getDocumentService();
     const response = await documentService.uploadDocument(
-      file as File,
-      title as string,
+      file,
+      title,
       source || undefined
     );
 

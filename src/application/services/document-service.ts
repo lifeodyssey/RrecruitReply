@@ -3,13 +3,14 @@
  */
 import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
-import { 
-  QueryRequestDto, 
-  QueryResponseDto, 
-  DocumentDto, 
-  UploadResponseDto, 
-  DeleteResponseDto 
+import {
+  QueryRequestDto,
+  QueryResponseDto,
+  DocumentDto,
+  UploadResponseDto,
+  DeleteResponseDto
 } from '../dtos/document-dtos';
+import { ValidationError } from '../errors/application-errors';
 
 export class DocumentService {
   constructor(private readonly documentRepository: DocumentRepository) {}
@@ -19,11 +20,11 @@ export class DocumentService {
    */
   async query(queryDto: QueryRequestDto): Promise<QueryResponseDto> {
     if (!queryDto.query || typeof queryDto.query !== 'string') {
-      throw new Error('Query is required and must be a string');
+      throw new ValidationError('Query is required and must be a string');
     }
 
     const result = await this.documentRepository.query(
-      queryDto.query, 
+      queryDto.query,
       queryDto.conversationId
     );
 
@@ -43,11 +44,11 @@ export class DocumentService {
    */
   async uploadDocument(file: File, title: string, source?: string): Promise<UploadResponseDto> {
     if (!file) {
-      throw new Error('File is required');
+      throw new ValidationError('File is required');
     }
 
     if (!title) {
-      throw new Error('Title is required');
+      throw new ValidationError('Title is required');
     }
 
     const result = await this.documentRepository.uploadDocument(file, title, source);
@@ -59,7 +60,7 @@ export class DocumentService {
    */
   async deleteDocument(documentId: string): Promise<DeleteResponseDto> {
     if (!documentId) {
-      throw new Error('Document ID is required');
+      throw new ValidationError('Document ID is required');
     }
 
     const result = await this.documentRepository.deleteDocument(documentId);

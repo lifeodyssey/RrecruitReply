@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 
 /**
  * API route for listing documents in the AutoRAG system
  */
-export async function GET() {
+export async function GET(): Promise<Response> {
   try {
-    // List documents from the document service
+    // Get the document service and list documents
+    const documentService = getDocumentService();
     const documents = await documentService.listDocuments();
 
     // Return the response

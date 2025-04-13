@@ -37,7 +37,7 @@ export class MockDocumentRepository implements DocumentRepository {
   };
 
   // Mock implementations
-  async query(query: string): Promise<QueryResult> {
+  async query(_query: string): Promise<QueryResult> {
     return this.mockQueryResult;
   }
 

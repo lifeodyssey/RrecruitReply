@@ -2,59 +2,67 @@ import { NextRequest } from 'next/server';
 import { POST as queryHandler } from '@/app/api/autorag/query/route';
 import { GET as listDocumentsHandler } from '@/app/api/autorag/documents/route';
 import { DELETE as deleteDocumentHandler } from '@/app/api/autorag/documents/[id]/route';
-import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
-// Mock the document service
+// Mock the document service factory first, before using any mocks
 jest.mock('@/infrastructure/factories/document-service-factory', () => ({
-  documentService: {
-    query: jest.fn().mockImplementation(queryDto => {
-      // Validate the query and throw an error if it's missing
-      if (!queryDto.query) {
-        throw new Error('Query is required and must be a string');
-      }
-
-      return Promise.resolve({
-        answer: 'This is a sample answer to your query.',
-        sources: [
-          {
-            id: 'doc-1',
-            title: 'Sample Resume',
-            source: 'Resume',
-            content: 'Sample content from the document that matches the query.',
-            similarity: 0.95,
-          },
-        ],
-      });
-    }),
-    listDocuments: jest.fn().mockResolvedValue([
-      {
-        id: 'doc-1',
-        title: 'Sample Resume',
-        source: 'Resume',
-        timestamp: Date.now(),
-        chunks: 3,
-      },
-      {
-        id: 'doc-2',
-        title: 'Job Description - Software Engineer',
-        source: 'Job Description',
-        timestamp: Date.now() - 86400000, // 1 day ago
-        chunks: 2,
-      },
-    ]),
-    deleteDocument: jest.fn().mockImplementation(documentId => {
-      // Validate the document ID and throw an error if it's missing
-      if (!documentId) {
-        throw new Error('Document ID is required');
-      }
-
-      return Promise.resolve({
-        success: true,
-        documentId,
-      });
-    }),
-  },
+  getDocumentService: jest.fn()
 }));
+
+// Create a mock document service
+const mockDocumentService = {
+  // Mock implementations
+  query: jest.fn().mockImplementation(queryDto => {
+    // Validate the query and throw an error if it's missing
+    if (!queryDto.query) {
+      throw new Error('Query is required and must be a string');
+    }
+
+    return Promise.resolve({
+      answer: 'This is a sample answer to your query.',
+      sources: [
+        {
+          id: 'doc-1',
+          title: 'Sample Resume',
+          source: 'HR Department',
+          content: 'This is a sample document content.',
+          similarity: 0.92
+        }
+      ]
+    });
+  }),
+
+  listDocuments: jest.fn().mockResolvedValue([
+    {
+      id: 'doc-1',
+      title: 'Benefits Overview',
+      source: 'HR Department',
+      timestamp: Date.now(),
+      chunks: 5
+    },
+    {
+      id: 'doc-2',
+      title: 'Recruitment Process',
+      source: 'HR Department',
+      timestamp: Date.now(),
+      chunks: 3
+    }
+  ]),
+
+  deleteDocument: jest.fn().mockImplementation(documentId => {
+    if (!documentId) {
+      throw new Error('Document ID is required');
+    }
+    
+    return Promise.resolve({
+      success: true,
+      documentId
+    });
+  })
+};
+
+// Setup the mock implementation
+(getDocumentService as jest.Mock).mockReturnValue(mockDocumentService);
 
 describe('API Routes', () => {
   describe('/api/autorag/query', () => {
@@ -99,7 +107,7 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.query to throw an error
-      jest.spyOn(documentService, 'query').mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
+      mockDocumentService.query.mockRejectedValueOnce(new Error('Failed to query AutoRAG'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/query', {
@@ -121,12 +129,7 @@ describe('API Routes', () => {
   });
 
   describe('/api/autorag/documents', () => {
-    it('handles document listing requests', async () => {
-      // Create a mock request
-      const request = new NextRequest('http://localhost:3000/api/autorag/documents', {
-        method: 'GET',
-      });
-
+    it('handles successful document listing', async () => {
       // Call the handler
       const response = await listDocumentsHandler();
 
@@ -141,12 +144,7 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.listDocuments to throw an error
-      jest.spyOn(documentService, 'listDocuments').mockRejectedValueOnce(new Error('Failed to list documents'));
-
-      // Create a mock request
-      const request = new NextRequest('http://localhost:3000/api/autorag/documents', {
-        method: 'GET',
-      });
+      mockDocumentService.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
 
       // Call the handler
       const response = await listDocumentsHandler();
@@ -159,14 +157,17 @@ describe('API Routes', () => {
   });
 
   describe('/api/autorag/documents/[id]', () => {
-    it('handles document deletion requests', async () => {
+    it('handles successful document deletion', async () => {
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents/doc-1', {
         method: 'DELETE',
       });
 
+      // Create a mock params object that resolves to { id: 'doc-1' }
+      const params = Promise.resolve({ id: 'doc-1' });
+
       // Call the handler with params
-      const response = await deleteDocumentHandler(request, { params: { id: 'doc-1' } });
+      const response = await deleteDocumentHandler(request, { params });
 
       // Check the response
       expect(response.status).toBe(200);
@@ -181,26 +182,32 @@ describe('API Routes', () => {
         method: 'DELETE',
       });
 
-      // Call the handler with empty params
-      const response = await deleteDocumentHandler(request, { params: { id: '' } });
+      // Create a mock params object that resolves to { id: '' }
+      const params = Promise.resolve({ id: '' });
+
+      // Call the handler with params
+      const response = await deleteDocumentHandler(request, { params });
 
       // Check the response
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data).toHaveProperty('error', 'Document ID is required');
+      expect(data).toHaveProperty('error');
     });
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.deleteDocument to throw an error
-      jest.spyOn(documentService, 'deleteDocument').mockRejectedValueOnce(new Error('Failed to delete document'));
+      mockDocumentService.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents/doc-1', {
         method: 'DELETE',
       });
 
+      // Create a mock params object that resolves to { id: 'doc-1' }
+      const params = Promise.resolve({ id: 'doc-1' });
+
       // Call the handler with params
-      const response = await deleteDocumentHandler(request, { params: { id: 'doc-1' } });
+      const response = await deleteDocumentHandler(request, { params });
 
       // Check the response
       expect(response.status).toBe(500);

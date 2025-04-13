@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { middleware } from '../middleware';
+import { middleware } from '../../middleware';
 
 // Import the types from the dom-extensions.d.ts file
 /// <reference path="../../types/dom-extensions.d.ts" />
@@ -14,7 +14,7 @@ const INTERNALS = Symbol.for('NextRequestInternal');
 const MOCK_INTERNALS = Symbol('MOCK_INTERNALS');
 
 // Import custom iterators
-import { MapIterator } from './mocks/custom-iterators';
+import './mocks/custom-iterators';
 
 // Define the NextURL class that matches the expected interface
 // Create a minimal implementation that satisfies the NextURL interface
@@ -187,8 +187,8 @@ class MockNextRequest {
   };
 
   // Define getters for the symbol properties
-  get [INTERNALS](): any { return this._internalState; }
-  get [MOCK_INTERNALS](): any { return this._internalState; }
+  get [INTERNALS](): Record<string, unknown> { return this._internalState; }
+  get [MOCK_INTERNALS](): Record<string, unknown> { return this._internalState; }
 
   // These properties are accessed through INTERNALS
   ua: { isBot: boolean } = { isBot: false };
@@ -284,7 +284,7 @@ jest.mock('next/server', () => {
         type: 'json',
         data,
         status: options?.status || 200,
-        json: async () => data,
+        json: async (): Promise<unknown> => data,
       })),
     },
   };

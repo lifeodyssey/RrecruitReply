@@ -3,76 +3,51 @@
  */
 import { NextResponse } from 'next/server';
 import { ErrorResponseDto } from '../dtos/document-dtos';
+import { ApplicationError } from '../errors/application-errors';
 
 export class ApiErrorHandler {
   /**
    * Handle an error and return an appropriate NextResponse
    */
-  static handleError(error: unknown, defaultMessage: string = 'An unexpected error occurred'): NextResponse<ErrorResponseDto> {
+  static handleError(error: unknown, defaultMessage = 'An unexpected error occurred'): NextResponse<ErrorResponseDto> {
     console.error(`API Error: ${defaultMessage}`, error);
 
-    const errorMessage = error instanceof Error ? error.message : defaultMessage;
-    const status = this.determineStatusCode(error, errorMessage);
+    // Determine error message and status code
+    let errorMessage: string;
+    let statusCode: number;
 
+    if (error instanceof ApplicationError) {
+      // If it's our application error, use its message and status code
+      errorMessage = error.message;
+      statusCode = error.statusCode;
+    } else if (error instanceof Error) {
+      // If it's a standard Error, use its message with appropriate status code
+      errorMessage = error.message;
+      
+      // Check for common validation error messages
+      if (error.message.includes('required') || 
+          error.message.includes('must be') || 
+          error.message.includes('Invalid input')) {
+        statusCode = 400; // Bad Request
+      } else if (error.message.includes('not found')) {
+        statusCode = 404; // Not Found
+      } else if (error.message.includes('not authorized')) {
+        statusCode = 401; // Unauthorized
+      } else if (error.message.includes('forbidden')) {
+        statusCode = 403; // Forbidden
+      } else {
+        statusCode = 500; // Internal Server Error
+      }
+    } else {
+      // For unknown errors, use the default message
+      errorMessage = defaultMessage;
+      statusCode = 500;
+    }
+
+    // Return the error response
     return NextResponse.json(
-      { error: errorMessage, status },
-      { status }
+      { error: errorMessage, status: statusCode },
+      { status: statusCode }
     );
-  }
-
-  /**
-   * Determine the appropriate status code based on the error
-   */
-  private static determineStatusCode(error: unknown, message: string): number {
-    // For testing purposes, we can check the exact error message
-    if (error instanceof Error) {
-      // Check for specific test cases
-      if (
-        error.message === 'Field is required' ||
-        error.message === 'Value must be a string' ||
-        error.message === 'Invalid input'
-      ) {
-        return 400; // Bad Request
-      }
-
-      if (error.message === 'Document not found') {
-        return 404; // Not Found
-      }
-
-      if (error.message === 'User is not authorized') {
-        return 401; // Unauthorized
-      }
-
-      if (error.message === 'Access is forbidden') {
-        return 403; // Forbidden
-      }
-    }
-
-    // General pattern matching for production use
-    if (
-      message.toLowerCase().includes('required') ||
-      message.toLowerCase().includes('must be') ||
-      message.toLowerCase().includes('invalid')
-    ) {
-      return 400; // Bad Request
-    }
-
-    if (message.toLowerCase().includes('not found')) {
-      return 404; // Not Found
-    }
-
-    if (
-      message.toLowerCase().includes('unauthorized') ||
-      message.toLowerCase().includes('not authorized')
-    ) {
-      return 401; // Unauthorized
-    }
-
-    if (message.toLowerCase().includes('forbidden')) {
-      return 403; // Forbidden
-    }
-
-    // Server errors (5xx)
-    return 500; // Internal Server Error
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { documentService } from '@/infrastructure/factories/document-service-factory';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 
 /**
@@ -10,9 +10,10 @@ import { ApiErrorHandler } from '@/application/utils/api-error-handler';
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<Response> {
   try {
     const { id } = await params;
+    const documentService = getDocumentService();
     const response = await documentService.deleteDocument(id);
     return NextResponse.json(response);
   } catch (error) {
