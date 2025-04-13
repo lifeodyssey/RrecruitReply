@@ -1,0 +1,76 @@
+name: 'PR Preview'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'terraform/**'
+      - 'terraform_modules/**'
+      - 'terragrunt/**'
+      - '**.md'
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+  deployments: write
+  id-token: write
+
+jobs:
+  build-preview:
+    name: 'Build and Deploy Preview'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+        
+    - name: Build
+      run: npm run build
+      env:
+        NEXT_PUBLIC_APP_ENV: preview
+        
+    - name: Deploy to Cloudflare Pages (Preview)
+      id: cloudflare-preview
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: recruitreply
+        directory: .next
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.head_ref }}
+        wranglerVersion: '3.x'
+        
+    - name: Find Comment
+      uses: peter-evans/find-comment@v3
+      id: find-comment
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: Preview environment
+        
+    - name: Create or Update Comment
+      uses: peter-evans/create-or-update-comment@v4
+      with:
+        comment-id: ${{ steps.find-comment.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ## Preview environment
+          
+          🚀 Your preview environment has been deployed!
+          
+          📝 URL: ${{ steps.cloudflare-preview.outputs.url }}
+          
+          This environment was automatically deployed from PR #${{ github.event.pull_request.number }}.
+        edit-mode: replace
+        reactions: rocket 

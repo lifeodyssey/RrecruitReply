@@ -18,6 +18,8 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  security-events: write
+  id-token: write # Needed for OIDC authentication
 
 jobs:
   terragrunt:
@@ -33,21 +35,57 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Configure Cloudflare Credentials OIDC
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        command: version # Just a no-op command to authenticate
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 1.5.0
+        terraform_version: '1.7.5'
+        terraform_wrapper: false
 
     - name: Install Terragrunt
       run: |
-        wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.0/terragrunt_linux_amd64 -O /tmp/terragrunt
+        wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v0.55.0/terragrunt_linux_amd64 -O /tmp/terragrunt
         chmod +x /tmp/terragrunt
         sudo mv /tmp/terragrunt /usr/local/bin/terragrunt
+        
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: v0.50.0
+        
+    - name: Run TFLint
+      run: |
+        tflint --init
+        tflint --recursive --format=sarif > tflint-results.sarif
+        
+    - name: Upload TFLint results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ./terragrunt/tflint-results.sarif
+        category: tflint
 
     - name: Terraform Format
       id: fmt
       run: terraform fmt -check -recursive ..
       continue-on-error: true
+
+    - name: Run tfsec
+      uses: aquasecurity/tfsec-sarif-action@v0.1.4
+      with:
+        sarif_file: tfsec-results.sarif
+        working_directory: ..
+        
+    - name: Upload tfsec results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: tfsec-results.sarif
+        category: tfsec
 
     - name: Terragrunt Init
       id: init
@@ -105,8 +143,14 @@ jobs:
             body: output
           })
 
+    - name: Store Terraform Outputs
+      id: tf_outputs
+      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      run: |
+        terragrunt run-all output -json | jq -r 'to_entries | map("\(.key)=\(.value.value)") | .[]' > tf_outputs.env
+
     - name: Terragrunt Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       run: terragrunt run-all apply --terragrunt-non-interactive
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -114,3 +158,11 @@ jobs:
         TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         TF_VAR_environment: 'prod'
+
+    - name: Upload Terraform Outputs
+      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-outputs
+        path: ./terragrunt/tf_outputs.env
+        retention-days: 1

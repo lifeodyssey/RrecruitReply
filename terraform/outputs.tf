@@ -37,3 +37,28 @@ output "domain_url" {
   description = "URL of the configured domain"
   value       = "https://${var.domain_name}"
 }
+
+output "api_endpoint" {
+  description = "API endpoint URL for the application"
+  value       = "https://api.${var.domain_name}"
+}
+
+output "cloudflare_account_id" {
+  description = "Cloudflare account ID"
+  value       = var.cloudflare_account_id
+}
+
+output "cloudflare_zone_id" {
+  description = "Cloudflare zone ID for the domain"
+  value       = var.cloudflare_zone_id
+}
+
+output "environment_name" {
+  description = "Current deployment environment (prod/dev)"
+  value       = "prod"
+}
+
+output "app_version" {
+  description = "Application version from deployment"
+  value       = formatdate("YYYYMMDDhhmmss", timestamp())
+}
