@@ -1,57 +1,105 @@
 /**
- * Utility for handling API errors consistently
+ * Utility for handling API errors and converting them to appropriate HTTP responses
  */
 import { NextResponse } from 'next/server';
 
-import { ErrorResponseDto } from '../dtos/document-dtos';
-import { ApplicationError } from '../errors/application-errors';
+import { ValidationError } from '../errors/application-errors';
 
+/**
+ * API error response structure
+ */
+interface ApiErrorResponse {
+  error: string;
+  details?: unknown;
+  code?: string;
+}
+
+/**
+ * Utility class for handling API errors
+ */
 export class ApiErrorHandler {
   /**
-   * Handle an error and return an appropriate NextResponse
+   * Maps error instances to HTTP status codes
    */
-  static handleError(error: unknown, defaultMessage = 'An unexpected error occurred'): NextResponse<ErrorResponseDto> {
-    // Only log errors in non-test environments
-    if (process.env.NODE_ENV !== 'test') {
-      console.error(`API Error: ${defaultMessage}`, error);
+  private static getStatusCode(error: Error): number {
+    // Check for specific error types
+    if (error instanceof ValidationError || 
+        error.name === 'ValidationError' || 
+        error.message.toLowerCase().includes('required') ||
+        error.message.toLowerCase().includes('invalid') ||
+        error.message.toLowerCase().includes('must be')) {
+      return 400; // Bad Request
     }
+    
+    if (error instanceof TypeError) {
+      return 400; // Bad Request
+    }
+    
+    if (error.message.toLowerCase().includes('not found') || 
+        error.name === 'NotFoundError') {
+      return 404; // Not Found
+    }
+    
+    // Special handling for authorization errors - more specific checks first
+    if (error.message.toLowerCase().includes('not authorized') ||
+        error.message.toLowerCase().includes('unauthorized') || 
+        error.name === 'UnauthorizedError') {
+      return 401; // Unauthorized
+    }
+    
+    if (error.message.toLowerCase().includes('forbidden') || 
+        error.name === 'ForbiddenError') {
+      return 403; // Forbidden
+    }
+    
+    return 500; // Internal Server Error
+  }
 
-    // Determine error message and status code
-    let errorMessage: string;
-    let statusCode: number;
-
-    if (error instanceof ApplicationError) {
-      // If it's our application error, use its message and status code
-      errorMessage = error.message;
-      statusCode = error.statusCode;
-    } else if (error instanceof Error) {
-      // If it's a standard Error, use its message with appropriate status code
-      errorMessage = error.message;
+  /**
+   * Creates an appropriate error response
+   * 
+   * @param error - The error that occurred
+   * @param defaultMessage - Default message to use if none is provided
+   * @returns NextResponse with appropriate status and error details
+   */
+  public static handleError(error: unknown, defaultMessage = 'An unexpected error occurred'): NextResponse {
+    console.error('API Error:', error);
+    
+    // Define default error response
+    const errorResponse: ApiErrorResponse = {
+      error: defaultMessage
+    };
+    
+    // Enhance error response based on the error type
+    if (error instanceof Error) {
+      errorResponse.error = error.message || defaultMessage;
       
-      // Check for common validation error messages
-      if (error.message.includes('required') || 
-          error.message.includes('must be') || 
-          error.message.includes('Invalid input')) {
-        statusCode = 400; // Bad Request
-      } else if (error.message.includes('not found')) {
-        statusCode = 404; // Not Found
-      } else if (error.message.includes('not authorized')) {
-        statusCode = 401; // Unauthorized
-      } else if (error.message.includes('forbidden')) {
-        statusCode = 403; // Forbidden
-      } else {
-        statusCode = 500; // Internal Server Error
+      // Add stack trace in development environment
+      if (process.env.NODE_ENV === 'development') {
+        errorResponse.details = error.stack;
       }
-    } else {
-      // For unknown errors, use the default message
-      errorMessage = defaultMessage;
-      statusCode = 500;
+      
+      // Return with appropriate status code
+      const statusCode = this.getStatusCode(error);
+      return NextResponse.json(
+        {...errorResponse, status: statusCode},
+        { status: statusCode }
+      );
     }
-
-    // Return the error response
-    return NextResponse.json(
-      { error: errorMessage, status: statusCode },
-      { status: statusCode }
-    );
+    
+    // For non-Error objects
+    if (error && typeof error === 'object') {
+      // Add stringified error in development environment
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          errorResponse.details = JSON.stringify(error);
+        } catch (e) {
+          errorResponse.details = 'Could not stringify error details';
+        }
+      }
+    }
+    
+    // Default to 500 Internal Server Error for unknown errors
+    return NextResponse.json({...errorResponse, status: 500}, { status: 500 });
   }
 }

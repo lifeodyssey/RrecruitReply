@@ -3,61 +3,102 @@
  */
 
 /**
+ * Error classes for the application layer
+ */
+
+/**
  * Base class for all application errors
  */
 export class ApplicationError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode: number = 500
-  ) {
-    super(message);
-    this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
+  /**
+   * Creates a new ApplicationError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ApplicationError';
   }
 }
 
 /**
- * Error for invalid input data (400 Bad Request)
+ * Error indicating a validation failure
  */
 export class ValidationError extends ApplicationError {
-  constructor(message: string) {
-    super(message, 400);
+  /**
+   * Creates a new ValidationError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ValidationError';
   }
 }
 
 /**
- * Error for unauthorized access (401 Unauthorized)
- */
-export class UnauthorizedError extends ApplicationError {
-  constructor(message: string = 'Unauthorized access') {
-    super(message, 401);
-  }
-}
-
-/**
- * Error for forbidden access (403 Forbidden)
- */
-export class ForbiddenError extends ApplicationError {
-  constructor(message: string = 'Access forbidden') {
-    super(message, 403);
-  }
-}
-
-/**
- * Error for resource not found (404 Not Found)
+ * Error indicating a resource was not found
  */
 export class NotFoundError extends ApplicationError {
-  constructor(message: string = 'Resource not found') {
-    super(message, 404);
+  /**
+   * Creates a new NotFoundError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'NotFoundError';
   }
 }
 
 /**
- * Error for conflict with current state (409 Conflict)
+ * Error indicating unauthorized access
+ */
+export class UnauthorizedError extends ApplicationError {
+  /**
+   * Creates a new UnauthorizedError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'UnauthorizedError';
+  }
+}
+
+/**
+ * Error indicating forbidden access
+ */
+export class ForbiddenError extends ApplicationError {
+  /**
+   * Creates a new ForbiddenError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ForbiddenError';
+  }
+}
+
+/**
+ * Error indicating a conflict with the current state
  */
 export class ConflictError extends ApplicationError {
-  constructor(message: string) {
-    super(message, 409);
+  /**
+   * Creates a new ConflictError
+   * 
+   * @param message - Error message
+   * @param options - Error options
+   */
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'ConflictError';
   }
 }
 
@@ -66,6 +107,7 @@ export class ConflictError extends ApplicationError {
  */
 export class InternalServerError extends ApplicationError {
   constructor(message: string = 'Internal server error') {
-    super(message, 500);
+    super(message);
+    this.name = 'InternalServerError';
   }
 }

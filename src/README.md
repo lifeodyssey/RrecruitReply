@@ -1,79 +1,85 @@
-# RecruitReply Source Code Structure
+# RecruitReply Source Code
 
-This project follows Clean Architecture principles with a feature-based organization. The code is organized into the following layers:
+## Clean Architecture
 
-## Clean Architecture Layers
+This project follows Clean Architecture principles with a clear separation of concerns:
 
-### 1. Domain Layer
-Located in `src/domain/`
+```mermaid
+graph TD
+    A[UI/Web Layer] --> B[Application Layer]
+    B --> C[Domain Layer]
+    B --> D[Infrastructure Layer]
+    D --> C
+```
 
-Contains:
-- Business entities and models (`models/`)
-- Repository interfaces (`repositories/`)
-- Domain services and business logic
+## Directory Structure
 
-This layer has no dependencies on any other layer.
+The codebase is organized into the following directories:
 
-### 2. Application Layer
-Located in `src/application/`
+### Core Architecture Layers
+- **domain/**: Core business logic and domain models
+  - `models/`: Domain entities and value objects
+  - `repositories/`: Repository interfaces
+  - `services/`: Domain service interfaces
+  - `errors/`: Domain-specific errors
 
-Contains:
-- Application services that orchestrate use cases
-- DTOs (Data Transfer Objects)
-- Application-specific interfaces
-- Validation logic
+- **application/**: Application services and use cases
+  - `services/`: Application services implementing use cases
+  - `dtos/`: Data Transfer Objects for inputs/outputs
+  - `errors/`: Application-specific errors
+  - `utils/`: Application-level utilities
 
-Depends on the Domain layer only.
+- **infrastructure/**: Infrastructure implementations
+  - `repositories/`: Repository implementations
+  - `cloudflare/`: Cloudflare-specific implementations
+  - `persistence/`: Database and storage implementations
+  - `http/`: HTTP client implementations
+  - `factories/`: Factory implementations
+  - `mocks/`: Mock implementations for testing
 
-### 3. Infrastructure Layer
-Located in `src/infrastructure/`
+### Frontend-specific Structure
+- **app/**: Next.js App Router
+  - `api/`: API route handlers
+  - `(routes)/`: Application routes
+  - `layout.tsx`: Root layout
+  - `page.tsx`: Home page
 
-Contains:
-- Repository implementations
-- External service integrations (Cloudflare, etc.)
-- Database connections
-- Factory implementations
+- **components/**: Reusable React components
+  - `layout/`: Layout components
+  - `ui/`: UI components
 
-Depends on the Domain and Application layers.
+- **features/**: Feature-based modules
+  - `auth/`: Authentication functionality
+  - `chat/`: Chat functionality
+  - `documents/`: Document management
 
-### 4. Presentation Layer
-Located in `src/app/` (Next.js App Router)
+- **hooks/**: Custom React hooks
 
-Contains:
-- UI components
-- Routes and pages
-- API endpoints
-- User interaction logic
+### Shared Code
+- **lib/**: Shared utilities
+  - `utils/`: Generic utility functions
+  - `constants/`: Application constants
+  - `config/`: Configuration files
 
-## Feature-Based Organization
-
-Within each layer, code is organized by feature or module:
-- Documents management
-- Chat functionality
-- Authentication
-- etc.
+- **types/**: TypeScript type definitions and interfaces
 
 ## Testing Structure
+The tests mirror the source code structure:
 
-Tests are co-located with the code they test:
-- `src/domain/**/__tests__/` - Tests for domain layer
-- `src/application/**/__tests__/` - Tests for application layer
-- `src/infrastructure/**/__tests__/` - Tests for infrastructure layer
-- `src/app/**/__tests__/` - Tests for presentation layer
-
-Additional tests:
-- Unit tests: Focus on individual components/functions
-- Integration tests: Test interactions between components
-- E2E tests: Test complete user flows
+- **__tests__/**: Test files
+  - `unit/`: Unit tests for components and functions
+  - `integration/`: Integration tests for API routes
+  - `e2e/`: End-to-end tests for user flows
 
 ## Best Practices
-
-This project follows:
-- SOLID principles
-- DRY (Don't Repeat Yourself)
-- KISS (Keep It Simple, Stupid)
-- YAGNI (You Aren't Gonna Need It)
-- Test-Driven Development (TDD)
+- Each module should have a clear responsibility (Single Responsibility Principle)
+- Depend on abstractions, not concretions (Dependency Inversion Principle)
+- Use interfaces to define boundaries between layers
+- Keep domain logic free from infrastructure concerns
+- Co-locate tests with the code they test
+- Follow consistent naming conventions
+- Avoid circular dependencies
+- Use dependency injection for better testability
 
 ## Utilities and Shared Code
 

@@ -113,15 +113,15 @@ export default function DocumentsPage(): ReactElement {
     }
 
     return documents.filter(doc => {
-      const source = doc.source.toLowerCase();
+      const sourceName = doc.source?.name?.toLowerCase() || '';
 
       if (type === 'resumes') {
-        return source.includes('resume') || source.includes('cv');
+        return sourceName.includes('resume') || sourceName.includes('cv');
       } else if (type === 'job-descriptions') {
-        return source.includes('job') || source.includes('description');
+        return sourceName.includes('job') || sourceName.includes('description');
       } else {
-        return !source.includes('resume') && !source.includes('cv') &&
-               !source.includes('job') && !source.includes('description');
+        return !sourceName.includes('resume') && !sourceName.includes('cv') &&
+               !sourceName.includes('job') && !sourceName.includes('description');
       }
     });
   };
@@ -197,9 +197,8 @@ export default function DocumentsPage(): ReactElement {
                       key={document.id}
                       id={document.id}
                       title={document.title}
-                      type={document.source}
+                      type={document.source?.name || ''}
                       date={new Date(document.timestamp).toLocaleDateString()}
-                      chunks={document.chunks}
                       onDelete={handleDelete}
                     />
                   ))}
@@ -218,11 +217,10 @@ interface DocumentCardProps {
   title: string;
   type: string;
   date: string;
-  chunks: number;
   onDelete: (id: string) => void;
 }
 
-function DocumentCard({ id, title, type, date, chunks, onDelete }: DocumentCardProps): ReactElement {
+function DocumentCard({ id, title, type, date, onDelete }: DocumentCardProps): ReactElement {
   return (
     <Card>
       <CardHeader>
@@ -231,7 +229,6 @@ function DocumentCard({ id, title, type, date, chunks, onDelete }: DocumentCardP
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">Uploaded on {date}</p>
-        <p className="text-sm text-muted-foreground mt-1">{chunks} chunks indexed</p>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" size="sm" onClick={() => window.open(`/api/autorag/documents/${id}`, '_blank')}>View</Button>

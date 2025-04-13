@@ -1,84 +1,67 @@
 /**
- * Factory for creating document service instances
+ * Factory for creating DocumentService instances
  */
 import { DocumentService } from '@/application/services/document-service';
 import { DocumentRepository } from '@/domain/repositories/document-repository';
-
-import { AutoRAGRepository } from '../repositories/autorag-repository';
+import { AutoRAGRepository } from '@/infrastructure/repositories/autorag-repository';
 
 /**
- * Environment configuration interface
+ * Factory configuration for DocumentService
  */
-export interface DocumentServiceConfig {
-  apiUrl: string;
+interface DocumentServiceConfig {
+  baseUrl: string;
   apiKey?: string;
 }
 
 /**
- * Factory interface for creating document services
+ * Factory for creating DocumentService instances
  */
-export interface IDocumentServiceFactory {
-  createService(config?: Partial<DocumentServiceConfig>): DocumentService;
+export class DocumentServiceFactory {
+  private static config: DocumentServiceConfig = {
+    baseUrl: process.env.AUTORAG_API_URL || 'https://api.autorag.workers.dev',
+    apiKey: process.env.AUTORAG_API_KEY
+  };
+
+  /**
+   * Configure the factory with custom settings
+   * 
+   * @param config - Custom configuration settings
+   */
+  public static configure(config: Partial<DocumentServiceConfig>): void {
+    DocumentServiceFactory.config = {
+      ...DocumentServiceFactory.config,
+      ...config
+    };
+  }
+
+  /**
+   * Create a new DocumentRepository instance
+   * 
+   * @returns A configured DocumentRepository instance
+   */
+  public static createRepository(): DocumentRepository {
+    return new AutoRAGRepository(
+      DocumentServiceFactory.config.baseUrl,
+      DocumentServiceFactory.config.apiKey
+    );
+  }
+
+  /**
+   * Create a new DocumentService instance
+   * 
+   * @returns A configured DocumentService instance
+   */
+  public static createService(): DocumentService {
+    const repository = DocumentServiceFactory.createRepository();
+    return new DocumentService(repository);
+  }
 }
 
 /**
- * Factory for creating document service instances
- *
- * This factory provides methods to create document service instances
- * with different repository implementations.
+ * Get a configured DocumentService instance
+ * 
+ * @returns A configured DocumentService instance
  */
-export class DocumentServiceFactory implements IDocumentServiceFactory {
-  private static instance: DocumentService | null = null;
-  private defaultConfig: DocumentServiceConfig;
-
-  constructor(config?: DocumentServiceConfig) {
-    // Use provided config or get from environment
-    this.defaultConfig = config || {
-      apiUrl: process.env.CLOUDFLARE_AUTORAG_ENDPOINT || 'https://autorag.recruitreply.example.com',
-      apiKey: process.env.CLOUDFLARE_AUTORAG_API_KEY
-    };
-  }
-
-  /**
-   * Get the default document service instance (singleton)
-   */
-  static getDefaultInstance(): DocumentService {
-    if (!this.instance) {
-      const factory = new DocumentServiceFactory();
-      this.instance = factory.createService();
-    }
-    return this.instance;
-  }
-
-  /**
-   * Create a document service with the provided configuration
-   */
-  createService(config?: Partial<DocumentServiceConfig>): DocumentService {
-    const effectiveConfig = {
-      ...this.defaultConfig,
-      ...config
-    };
-    
-    const repository = new AutoRAGRepository(effectiveConfig.apiUrl, effectiveConfig.apiKey);
-    return new DocumentService(repository);
-  }
-
-  /**
-   * Create a document service with a custom repository
-   */
-  static createWithCustomRepository(repository: DocumentRepository): DocumentService {
-    return new DocumentService(repository);
-  }
-
-  /**
-   * Reset the singleton instance (useful for testing)
-   */
-  static resetInstance(): void {
-    this.instance = null;
-  }
-}
-
-// Export a convenience function to get the default instance
 export function getDocumentService(): DocumentService {
-  return DocumentServiceFactory.getDefaultInstance();
+  return DocumentServiceFactory.createService();
 }

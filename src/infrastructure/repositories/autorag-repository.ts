@@ -7,15 +7,27 @@
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
 import { DocumentRepository } from '@/domain/repositories/document-repository';
 
+/**
+ * Error response from the AutoRAG API
+ */
 export interface ErrorResponse {
   error: string;
 }
 
+/**
+ * Repository implementation for Cloudflare AutoRAG
+ */
 export class AutoRAGRepository implements DocumentRepository {
-  private baseUrl: string;
-  private apiKey?: string;
+  private readonly baseUrl: string;
+  private readonly apiKey?: string;
 
-  constructor(baseUrl: string, apiKey?: string) {
+  /**
+   * Creates a new instance of AutoRAGRepository
+   * 
+   * @param baseUrl - The base URL of the AutoRAG API
+   * @param apiKey - Optional API key for authentication
+   */
+  public constructor(baseUrl: string, apiKey?: string) {
     this.baseUrl = baseUrl;
     this.apiKey = apiKey;
   }
@@ -49,9 +61,32 @@ export class AutoRAGRepository implements DocumentRepository {
   }
 
   /**
-   * Query the AutoRAG system
+   * Handles API response errors
+   * 
+   * @param response - The fetch Response object
+   * @param defaultErrorMessage - Default error message if none is provided by the API
+   * @throws Error with the appropriate error message
    */
-  async query(query: string, conversationId?: string): Promise<QueryResult> {
+  private async handleApiError(response: Response, defaultErrorMessage: string): Promise<never> {
+    try {
+      const errorData = await response.json() as ErrorResponse;
+      throw new Error(errorData.error || defaultErrorMessage);
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        throw new Error(`${defaultErrorMessage} (Status: ${response.status})`);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Query the AutoRAG system
+   * 
+   * @param query - The natural language query string
+   * @param conversationId - Optional conversation ID for context
+   * @returns Promise resolving to the query result
+   */
+  public async query(query: string, conversationId?: string): Promise<QueryResult> {
     const response = await fetch(`${this.baseUrl}/query`, {
       method: 'POST',
       headers: this.getJsonHeaders(),
@@ -59,8 +94,7 @@ export class AutoRAGRepository implements DocumentRepository {
     });
 
     if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.error || 'Failed to query AutoRAG');
+      await this.handleApiError(response, 'Failed to query AutoRAG');
     }
 
     return response.json() as Promise<QueryResult>;
@@ -68,8 +102,13 @@ export class AutoRAGRepository implements DocumentRepository {
 
   /**
    * Upload a document to the AutoRAG system
+   * 
+   * @param file - The file to upload
+   * @param title - The document title
+   * @param source - Optional source information
+   * @returns Promise resolving to the upload result
    */
-  async uploadDocument(file: File, title: string, source?: string): Promise<UploadResult> {
+  public async uploadDocument(file: File, title: string, source?: string): Promise<UploadResult> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
@@ -85,8 +124,7 @@ export class AutoRAGRepository implements DocumentRepository {
     });
 
     if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.error || 'Failed to upload document');
+      await this.handleApiError(response, 'Failed to upload document');
     }
 
     return response.json() as Promise<UploadResult>;
@@ -94,16 +132,17 @@ export class AutoRAGRepository implements DocumentRepository {
 
   /**
    * List all documents in the AutoRAG system
+   * 
+   * @returns Promise resolving to an array of documents
    */
-  async listDocuments(): Promise<Document[]> {
+  public async listDocuments(): Promise<Document[]> {
     const response = await fetch(`${this.baseUrl}/documents`, {
       method: 'GET',
       headers: this.getJsonHeaders(),
     });
 
     if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.error || 'Failed to list documents');
+      await this.handleApiError(response, 'Failed to list documents');
     }
 
     return response.json() as Promise<Document[]>;
@@ -111,16 +150,18 @@ export class AutoRAGRepository implements DocumentRepository {
 
   /**
    * Delete a document from the AutoRAG system
+   * 
+   * @param documentId - The ID of the document to delete
+   * @returns Promise resolving to the delete result
    */
-  async deleteDocument(documentId: string): Promise<DeleteResult> {
+  public async deleteDocument(documentId: string): Promise<DeleteResult> {
     const response = await fetch(`${this.baseUrl}/documents/${documentId}`, {
       method: 'DELETE',
       headers: this.getJsonHeaders(),
     });
 
     if (!response.ok) {
-      const error = await response.json() as ErrorResponse;
-      throw new Error(error.error || 'Failed to delete document');
+      await this.handleApiError(response, 'Failed to delete document');
     }
 
     return response.json() as Promise<DeleteResult>;

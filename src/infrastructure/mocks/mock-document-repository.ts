@@ -14,16 +14,22 @@ export const DEFAULT_DOCUMENTS: Document[] = [
   {
     id: 'doc-1',
     title: 'Benefits Overview',
-    source: 'HR Department',
-    timestamp: Date.now(),
-    chunks: 5
+    filename: 'benefits-overview.pdf',
+    source: {
+      name: 'HR Department',
+      url: 'https://example.com/hr'
+    },
+    timestamp: Date.now()
   },
   {
     id: 'doc-2',
     title: 'Recruitment Process',
-    source: 'HR Department',
-    timestamp: Date.now(),
-    chunks: 3
+    filename: 'recruitment-process.pdf',
+    source: {
+      name: 'HR Department',
+      url: 'https://example.com/hr'
+    },
+    timestamp: Date.now()
   }
 ];
 
@@ -95,12 +101,15 @@ export class MockDocumentRepository implements DocumentRepository {
       throw new Error('Title is required');
     }
     
-    const newDoc = {
+    const newDoc: Document = {
       id: `doc-${this.mockDocuments.length + 1}`,
       title,
-      source: source || 'Unknown',
-      timestamp: Date.now(),
-      chunks: 4
+      filename: file.name,
+      source: source ? {
+        name: source,
+        url: `https://example.com/${source.toLowerCase().replace(/\s+/g, '-')}`
+      } : undefined,
+      timestamp: Date.now()
     };
 
     this.mockDocuments.push(newDoc);
@@ -108,7 +117,7 @@ export class MockDocumentRepository implements DocumentRepository {
     return {
       success: true,
       documentId: newDoc.id,
-      chunks: newDoc.chunks
+      chunks: 4
     };
   }
 
