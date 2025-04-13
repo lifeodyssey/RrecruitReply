@@ -1,7 +1,8 @@
-import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
-import { prisma } from "@/lib/prisma";
+
+import { prisma } from '@/lib/prisma';
 
 /**
  * NextAuth configuration for administrator authentication
@@ -14,12 +15,6 @@ import { prisma } from "@/lib/prisma";
 interface User {
   email?: string;
   role?: string;
-}
-
-interface Session {
-  user?: {
-    role?: string;
-  };
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -41,12 +36,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user }) {
       // Only allow specific email address(es)
       const allowedEmails = (process.env.ALLOWED_ADMIN_EMAILS || "").split(",");
-      return allowedEmails.includes(user.email || "");
+      // Ensure user.email is not null or undefined before checking includes
+      return !!user.email && allowedEmails.includes(user.email);
     },
     async session({ session, user }) {
       // Add role to session
       if (session.user) {
-        session.user.role = user.role || "admin";
+        // Ensure user object exists and has a role property before assigning
+        session.user.role = (user as User)?.role || "admin";
       }
       return session;
     },

@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
  * This middleware checks if the user is authenticated before allowing access to admin routes.
  * If not authenticated, the user is redirected to the login page.
  */
-export async function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
 
   // Check if the path is for admin routes

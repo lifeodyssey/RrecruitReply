@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { TurnstileVerification } from '../TurnstileVerification';
+
 import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
+
+import { TurnstileVerification } from '../TurnstileVerification';
 
 // Mock the useTurnstileVerification hook
 jest.mock('@/hooks/useTurnstileVerification');

@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
+
 import ChatPage from '@/app/chat/page';
 
 // Mock the toast function
@@ -11,7 +12,7 @@ jest.mock('sonner', () => ({
   },
 }));
 
-describe('Chat Interaction E2E', () => {
+describe('Chat Page E2E Interaction', () => {
   it('completes a full chat interaction flow', async () => {
     const user = userEvent.setup();
 

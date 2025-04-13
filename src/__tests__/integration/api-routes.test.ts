@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
-import { POST as queryHandler } from '@/app/api/autorag/query/route';
-import { GET as listDocumentsHandler } from '@/app/api/autorag/documents/route';
+
 import { DELETE as deleteDocumentHandler } from '@/app/api/autorag/documents/[id]/route';
+import { GET as listDocumentsHandler } from '@/app/api/autorag/documents/route';
+import { POST as queryHandler } from '@/app/api/autorag/query/route';
 import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
 // Mock the document service factory first, before using any mocks

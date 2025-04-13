@@ -5,48 +5,7 @@
  * It's used by the frontend components to communicate with the backend.
  */
 import { ValidationError, NotFoundError, InternalServerError } from '@/application/errors/application-errors';
-
-/**
- * Interface for document information returned by the API
- */
-export interface DocumentInfo {
-  id: string;
-  title: string;
-  source: string;
-  timestamp: number;
-  chunks: number;
-}
-
-/**
- * Interface for query response returned by the API
- */
-export interface QueryResponse {
-  answer: string;
-  sources: Array<{
-    id: string;
-    title: string;
-    source: string;
-    content: string;
-    similarity: number;
-  }>;
-}
-
-/**
- * Interface for upload response returned by the API
- */
-export interface UploadResponse {
-  success: boolean;
-  documentId: string;
-  chunks: number;
-}
-
-/**
- * Interface for delete response returned by the API
- */
-export interface DeleteResponse {
-  success: boolean;
-  documentId: string;
-}
+import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
 
 /**
  * AutoRAG Client class for interacting with the AutoRAG API
@@ -61,7 +20,7 @@ export class AutoRAGClient {
   /**
    * Query the AutoRAG system
    */
-  async query(query: string, conversationId?: string): Promise<QueryResponse> {
+  async query(query: string, conversationId?: string): Promise<QueryResult> {
     const response = await fetch(`${this.baseUrl}/query`, {
       method: 'POST',
       headers: {
@@ -89,7 +48,7 @@ export class AutoRAGClient {
   /**
    * Upload a document to the AutoRAG system
    */
-  async uploadDocument(file: File, title: string, source?: string): Promise<UploadResponse> {
+  async uploadDocument(file: File, title: string, source?: string): Promise<UploadResult> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('title', title);
@@ -120,7 +79,7 @@ export class AutoRAGClient {
   /**
    * List all documents in the AutoRAG system
    */
-  async listDocuments(): Promise<DocumentInfo[]> {
+  async listDocuments(): Promise<Document[]> {
     const response = await fetch(`${this.baseUrl}/documents`, {
       method: 'GET',
     });
@@ -138,7 +97,7 @@ export class AutoRAGClient {
   /**
    * Delete a document from the AutoRAG system
    */
-  async deleteDocument(documentId: string): Promise<DeleteResponse> {
+  async deleteDocument(documentId: string): Promise<DeleteResult> {
     const response = await fetch(`${this.baseUrl}/documents/${documentId}`, {
       method: 'DELETE',
     });

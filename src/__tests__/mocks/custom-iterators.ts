@@ -17,14 +17,14 @@ describe('Custom Iterators', () => {
 // Import the types from the dom-extensions.d.ts file
 // Define the interfaces directly in this file
 interface IteratorExtensions<T> {
-  map<U>(callbackfn: (value: T, index: number) => U): any;
-  filter(predicate: (value: T, index: number) => boolean): any;
-  take(count: number): any;
-  drop(count: number): any;
+  map<U>(callbackfn: (value: T, index: number) => U): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
+  filter(predicate: (value: T, index: number) => boolean): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
+  take(count: number): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
+  drop(count: number): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
   forEach(callbackfn: (value: T, index: number) => void): void;
   toArray(): T[];
-  flatMap<U>(callbackfn: (value: T, index: number) => U | U[]): any;
-  reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U, initialValue: U): U;
+  flatMap<U>(callbackfn: (value: T, index: number) => U | U[]): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
+  reduce<V>(callbackfn: (previousValue: V, currentValue: T, currentIndex: number) => V, initialValue: V): V;
   some(predicate: (value: T, index: number) => boolean): boolean;
   every(predicate: (value: T, index: number) => boolean): boolean;
 }
@@ -37,7 +37,7 @@ export class HeadersIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     this.iterator = iterator;
   }
 
-  next(value?: any): IteratorResult<T> {
+  next(value?: unknown): IteratorResult<T> {
     return this.iterator.next(value);
   }
 
@@ -220,7 +220,7 @@ export class MapIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     this.iterator = iterator;
   }
 
-  next(value?: any): IteratorResult<T> {
+  next(value?: unknown): IteratorResult<T> {
     return this.iterator.next(value);
   }
 
@@ -403,7 +403,7 @@ export class FormDataIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     this.iterator = iterator;
   }
 
-  next(value?: any): IteratorResult<T> {
+  next(value?: unknown): IteratorResult<T> {
     return this.iterator.next(value);
   }
 

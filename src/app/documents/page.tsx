@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { ReactElement , useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DocumentInfo } from "@/lib/autorag/client";
-import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Document } from "@/domain/models/document";
 
-export default function DocumentsPage() {
-  const [documents, setDocuments] = useState<DocumentInfo[]>([]);
+
+export default function DocumentsPage(): ReactElement {
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function DocumentsPage() {
   }, []);
 
   // Function to fetch documents from the API
-  const fetchDocuments = async () => {
+  const fetchDocuments = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/autorag/documents');
@@ -43,7 +45,7 @@ export default function DocumentsPage() {
   };
 
   // Function to handle document upload
-  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleUpload = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
 
     const form = event.currentTarget;
@@ -79,7 +81,7 @@ export default function DocumentsPage() {
   };
 
   // Function to handle document deletion
-  const handleDelete = async (documentId: string) => {
+  const handleDelete = async (documentId: string): Promise<void> => {
     if (!confirm('Are you sure you want to delete this document?')) {
       return;
     }
@@ -105,7 +107,7 @@ export default function DocumentsPage() {
   };
 
   // Filter documents by type
-  const getFilteredDocuments = (type: string) => {
+  const getFilteredDocuments = (type: string): Document[] => {
     if (type === 'all') {
       return documents;
     }
@@ -220,7 +222,7 @@ interface DocumentCardProps {
   onDelete: (id: string) => void;
 }
 
-function DocumentCard({ id, title, type, date, chunks, onDelete }: DocumentCardProps) {
+function DocumentCard({ id, title, type, date, chunks, onDelete }: DocumentCardProps): ReactElement {
   return (
     <Card>
       <CardHeader>

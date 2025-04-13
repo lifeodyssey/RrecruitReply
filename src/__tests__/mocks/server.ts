@@ -1,5 +1,5 @@
-import { setupServer } from './msw-mock';
 import { handlers } from './handlers';
+import { setupServer } from './msw-mock';
 
 // Setup requests interception using the given handlers
 export const server = setupServer(...handlers);

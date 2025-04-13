@@ -1,7 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import AdminDashboardPage from '../page';
-import { useSession, signOut } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+
+import AdminDashboardPage from '../page';
+
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({

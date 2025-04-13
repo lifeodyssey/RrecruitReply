@@ -1,8 +1,9 @@
+import { NextRequest } from 'next/server';
+
 import { POST } from '../route';
-import { NextRequest, NextResponse } from 'next/server';
 
 // Use the actual Request class for testing
-class MockRequest extends Request {
+class _MockRequest extends Request {
   constructor(url: string, init?: RequestInit) {
     super(url, init);
   }
@@ -37,14 +38,14 @@ const originalEnv = process.env;
 // Create a mock NextRequest class
 class MockNextRequest extends Request {
   readonly nextUrl: URL;
-  readonly cookies: any = {};
+  readonly cookies: Record<string, unknown> = {};
   readonly ip: string = '127.0.0.1';
-  readonly geo: any = {};
-  readonly ua: any = { isBot: false };
-  readonly page: any = {};
+  readonly geo: Record<string, unknown> = {};
+  readonly ua: Record<string, unknown> = { isBot: false };
+  readonly page: Record<string, unknown> = {};
   // Use private properties instead of computed property names
-  private readonly _nextRequestInternal: any;
-  private readonly _internals: any;
+  private readonly _nextRequestInternal: Record<string, unknown>;
+  private readonly _internals: Record<string, unknown>;
 
   constructor(url: string, init?: RequestInit) {
     super(url, init);

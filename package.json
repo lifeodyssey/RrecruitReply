@@ -7,12 +7,14 @@
     "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPattern=unit",
     "test:integration": "jest --testPathPattern=integration",
     "test:e2e": "jest --testPathPattern=e2e",
     "test:coverage": "jest --coverage",
+    "test:specific": "jest --testPathPattern",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

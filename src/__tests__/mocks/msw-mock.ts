@@ -21,12 +21,14 @@ export interface MockResponse {
 
 export type ResponseTransformer = (ctx: ResponseContext) => MockResponse;
 export type ResponseResolver = (req: unknown, res: ResponseTransformer, ctx: ResponseContext) => MockResponse;
-export type RestHandler = {
+export interface RestHandler {
   type: string;
   method: string;
   url: string;
   handler: ResponseResolver;
-};
+}
+
+export type AnyHandler = RestHandler | unknown; // This allows HttpHandler to be passed
 
 export const rest = {
   get: (url: string, handler: ResponseResolver): RestHandler => ({
@@ -50,18 +52,18 @@ export const rest = {
 };
 
 interface MockServer {
-  handlers: RestHandler[];
+  handlers: AnyHandler[];
   listen: jest.Mock;
   close: jest.Mock;
   resetHandlers: jest.Mock;
   use: jest.Mock;
 }
 
-type FetchMockResponse = {
+interface FetchMockResponse {
   ok: boolean;
   status: number;
   json: () => Promise<unknown>;
-};
+}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -72,16 +74,16 @@ declare global {
   }
 }
 
-export const setupServer = (...handlers: RestHandler[]): MockServer => {
+export const setupServer = (...handlers: AnyHandler[]): MockServer => {
   const server = {
     handlers,
     listen: jest.fn(),
     close: jest.fn(),
     resetHandlers: jest.fn(),
-    use: jest.fn((handler: RestHandler) => {
+    use: jest.fn((handler: AnyHandler) => {
       // When server.use is called, register a fetch mock
-      if (handler && handler.type === 'rest') {
-        const { method, url, handler: responseHandler } = handler;
+      if (handler && typeof handler === 'object' && 'type' in handler && handler.type === 'rest') {
+        const { method, url, handler: responseHandler } = handler as RestHandler;
         const mockCtx = {
           status: (code: number): StatusContext => ({
             json: (data: unknown): MockResponse => ({ status: code, data })

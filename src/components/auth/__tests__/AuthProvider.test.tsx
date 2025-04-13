@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
-import { AuthProvider } from '../AuthProvider';
 import { SessionProvider } from 'next-auth/react';
+
+import { AuthProvider } from '../AuthProvider';
 
 // Mock next-auth/react
 jest.mock('next-auth/react', () => ({

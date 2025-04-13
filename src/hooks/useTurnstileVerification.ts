@@ -36,7 +36,12 @@ interface VerificationState {
  * This hook manages the verification state of the Turnstile CAPTCHA,
  * including persisting the state to localStorage and handling expiration.
  */
-export function useTurnstileVerification() {
+export function useTurnstileVerification(): {
+  isVerified: boolean;
+  isLoading: boolean;
+  verifyToken: (token: string) => Promise<boolean>;
+  resetVerification: () => void;
+} {
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -106,7 +111,7 @@ export function useTurnstileVerification() {
   };
 
   // Function to reset verification state
-  const resetVerification = () => {
+  const resetVerification = (): void => {
     localStorage.removeItem(STORAGE.KEY);
     setIsVerified(false);
   };

@@ -96,7 +96,7 @@ interface NextURL extends URL {
   defaultLocale: string;
   domainLocale?: { domain: string; defaultLocale: string; locales: string[] };
   [Symbol.for('NextURLInternal')]: NextURLInternal;
-  [Internal]: any;
+  [Internal]: Record<string, unknown>;
   clone(): NextURL;
   analyze(): { pathname: string; search: string; hash: string };
   formatPathname(): string;
@@ -115,5 +115,5 @@ interface NextRequest extends Request {
   ua: { isBot: boolean };
   page: { name?: string; params?: Record<string, string> };
   [Symbol.for('NextRequestInternal')]: NextRequestInternal;
-  [INTERNALS]: any;
+  [INTERNALS]: Record<string, unknown>;
 }

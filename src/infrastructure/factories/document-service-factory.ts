@@ -2,8 +2,9 @@
  * Factory for creating document service instances
  */
 import { DocumentService } from '@/application/services/document-service';
-import { AutoRAGRepository } from '../repositories/autorag-repository';
 import { DocumentRepository } from '@/domain/repositories/document-repository';
+
+import { AutoRAGRepository } from '../repositories/autorag-repository';
 
 /**
  * Environment configuration interface

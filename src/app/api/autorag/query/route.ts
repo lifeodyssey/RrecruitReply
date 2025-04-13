@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
-import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+
 import { QueryRequestDto } from '@/application/dtos/document-dtos';
+import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
 /**
  * API route for querying the AutoRAG system

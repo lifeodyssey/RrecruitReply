@@ -1,6 +1,7 @@
 import { QueryRequestDto } from '@/application/dtos/document-dtos';
-import { DocumentService } from '@/application/services/document-service';
 import { MockDocumentRepository } from '@/infrastructure/mocks/mock-document-repository';
+
+import { DocumentService } from '../document-service';
 
 describe('DocumentService', () => {
   let documentService: DocumentService;
@@ -102,4 +103,4 @@ describe('DocumentService', () => {
         .rejects.toThrow(`Document with ID ${documentId} not found`);
     });
   });
-});
+}); 

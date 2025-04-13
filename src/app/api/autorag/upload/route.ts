@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
-import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+
 import { ValidationError } from '@/application/errors/application-errors';
+import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
 /**
  * API route for uploading documents to the AutoRAG system

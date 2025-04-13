@@ -1,11 +1,13 @@
-import { Header } from "./header";
+import React, { ReactElement } from "react";
+
 import { Footer } from "./footer";
+import { Header } from "./header";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps): ReactElement {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

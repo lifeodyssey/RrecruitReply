@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+
 import { TurnstileWidget } from '../TurnstileWidget';
 
 // Mock the turnstile global object

@@ -1,10 +1,10 @@
-import { rest } from './msw-mock';
+import { http, HttpResponse, PathParams, DefaultBodyType, StrictRequest } from 'msw';
 
-// Import types from msw-mock.ts
-import type { ResponseContext, ResponseTransformer, RestHandler, MockResponse } from './msw-mock';
-
-// Sample document data
-const sampleDocuments = [
+// Define types for request parameters
+interface DocumentIdParams { id: string };
+// Removed unused UploadRequestBody type
+// Initial sample document data
+const initialSampleDocuments = [
   {
     id: 'doc-1',
     title: 'Sample Resume',
@@ -20,6 +20,14 @@ const sampleDocuments = [
     chunks: 2,
   },
 ];
+
+// Mutable state for documents in tests
+let mockDocuments = [...initialSampleDocuments];
+
+// Function to reset the mock documents (call this in test setup)
+export const resetMockDocuments = (): void => {
+  mockDocuments = [...initialSampleDocuments];
+};
 
 // Sample query response
 const sampleQueryResponse = {
@@ -38,60 +46,60 @@ const sampleQueryResponse = {
 // Define handlers for the mock API endpoints
 export const handlers = [
   // GET /api/autorag/documents - List documents
-  rest.get('/api/autorag/documents', (_req, res, ctx) => {
-    // Create a mock response with the sample documents
-    return { status: 200, data: sampleDocuments };
-  }),
+  // Use http object from msw for standard handlers if rest from msw-mock causes issues
+  // Assuming 'rest' from msw-mock is compatible or we switch to 'http'
+  http.get('/api/autorag/documents', () => HttpResponse.json([...mockDocuments])),
 
   // POST /api/autorag/upload - Upload document
-  rest.post('/api/autorag/upload', (_req, res, ctx) => {
-    // Create a mock response with the upload result
-    return {
-      status: 200,
-      data: {
-        success: true,
-        documentId: 'new-doc-id',
-        chunks: 4,
+  http.post('/api/autorag/upload', async ({ request }: { request: StrictRequest<DefaultBodyType> }) => {
+    let title = 'Uploaded Test Document'; // Default title
+  
+    // Try to parse as FormData first, then as JSON
+    try {
+      const formData = await request.clone().formData(); // Clone request to read body multiple times if needed
+      title = formData.get('title')?.toString() || title;
+    } catch {
+      try {
+        const body = await request.clone().json() as { title?: string };
+        title = body?.title || title;
+      } catch {
+        console.warn('MSW handler: Could not parse request body for title in /api/autorag/upload. Using default.');
       }
+    }
+
+    const newDocId = `doc-${Date.now()}`;
+    const newDocument = {
+      id: newDocId,
+      title: title, // Use the extracted or default title
+      source: 'Uploaded',
+      timestamp: Date.now(),
+      chunks: 4,
     };
+    mockDocuments.push(newDocument);
+
+    return HttpResponse.json({
+      success: true,
+      documentId: newDocId,
+      chunks: newDocument.chunks,
+    }, { status: 201 }); // Use 201 Created status
   }),
 
   // DELETE /api/autorag/documents/:id - Delete document
-  rest.delete('/api/autorag/documents/:id', (req, res, ctx) => {
-    // Safely access params
-    const id = typeof req === 'object' && req !== null && 'params' in req
-      ? (req.params as Record<string, string>).id
-      : 'unknown-id';
-
-    // Create a mock response with the delete result
-    return {
-      status: 200,
-      data: {
-        success: true,
-        documentId: id,
-      }
-    };
+  http.delete('/api/autorag/documents/:id', ({ params }: { params: PathParams<keyof DocumentIdParams> }) => {
+    const { id } = params;
+    const initialLength = mockDocuments.length;
+    mockDocuments = mockDocuments.filter(doc => doc.id !== id);
+    const success = mockDocuments.length < initialLength;
+  
+    if (!success) {
+      return HttpResponse.json({ success: false, documentId: id, message: 'Document not found' }, { status: 404 });
+    }
+  
+    return HttpResponse.json({ success: true, documentId: id }, { status: 200 });
   }),
 
   // POST /api/autorag/query - Query the RAG system
-  rest.post('/api/autorag/query', (_req, res, ctx) => {
-    // Create a mock response with the query result
-    return { status: 200, data: sampleQueryResponse };
-  }),
+  http.post('/api/autorag/query', () => HttpResponse.json(sampleQueryResponse)),
 ];
 
-// Add a simple test to avoid the "Your test suite must contain at least one test" error
-describe('Handlers', () => {
-  it('should have sample data', () => {
-    expect(sampleDocuments).toBeDefined();
-    expect(sampleDocuments.length).toBe(2);
-    expect(sampleQueryResponse).toBeDefined();
-    expect(sampleQueryResponse.sources.length).toBe(1);
-  });
-
-  it('should have handlers defined', () => {
-    expect(handlers).toBeDefined();
-    expect(Array.isArray(handlers)).toBe(true);
-    expect(handlers.length).toBe(4);
-  });
-});
+// Test logic should reside in actual test files (.test.ts/.tsx)

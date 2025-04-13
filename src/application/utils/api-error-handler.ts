@@ -2,6 +2,7 @@
  * Utility for handling API errors consistently
  */
 import { NextResponse } from 'next/server';
+
 import { ErrorResponseDto } from '../dtos/document-dtos';
 import { ApplicationError } from '../errors/application-errors';
 
@@ -10,7 +11,10 @@ export class ApiErrorHandler {
    * Handle an error and return an appropriate NextResponse
    */
   static handleError(error: unknown, defaultMessage = 'An unexpected error occurred'): NextResponse<ErrorResponseDto> {
-    console.error(`API Error: ${defaultMessage}`, error);
+    // Only log errors in non-test environments
+    if (process.env.NODE_ENV !== 'test') {
+      console.error(`API Error: ${defaultMessage}`, error);
+    }
 
     // Determine error message and status code
     let errorMessage: string;

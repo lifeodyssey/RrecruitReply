@@ -1,19 +1,20 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import React, { useState, Suspense, type ReactElement } from "react";
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 /**
  * Component that uses useSearchParams() hook
  * This must be wrapped in a Suspense boundary
  */
-function SearchParamsProvider({ children }: { children: (callbackUrl: string) => React.ReactNode }) {
+function SearchParamsProvider({ children }: { children: (callbackUrl: string) => React.ReactNode }): ReactElement {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
 
@@ -24,12 +25,12 @@ function SearchParamsProvider({ children }: { children: (callbackUrl: string) =>
  * Login form component that receives the callbackUrl as a prop
  * instead of using useSearchParams directly
  */
-function LoginForm({ callbackUrl }: { callbackUrl: string }) {
+function LoginForm({ callbackUrl }: { callbackUrl: string }): ReactElement {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setMessage(null);
@@ -116,7 +117,7 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }) {
  * Login page wrapper component
  * Properly wraps components using useSearchParams in Suspense
  */
-function LoginPageContent() {
+function LoginPageContent(): ReactElement {
   return (
     <SearchParamsProvider>
       {(callbackUrl) => <LoginForm callbackUrl={callbackUrl} />}
@@ -129,7 +130,7 @@ function LoginPageContent() {
  *
  * This page provides a form for administrators to sign in using email authentication.
  */
-export default function AdminLoginPage() {
+export default function AdminLoginPage(): ReactElement {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen flex-col items-center justify-center p-4">

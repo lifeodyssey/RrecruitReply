@@ -1,9 +1,11 @@
+import Link from "next/link";
+import { ReactElement } from "react";
+
 import { MainLayout } from "@/components/layout/main-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
 
-export default function Home() {
+export default function Home(): ReactElement {
   return (
     <MainLayout>
       <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">

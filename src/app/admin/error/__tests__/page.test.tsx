@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import AuthErrorPage from '../page';
 import { useSearchParams } from 'next/navigation';
+
+import AuthErrorPage from '../page';
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({

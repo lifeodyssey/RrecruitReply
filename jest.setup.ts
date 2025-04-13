@@ -1,15 +1,17 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { MapIterator } from './src/__tests__/mocks/custom-iterators'; // Removed unused HeadersIterator
 
 // Polyfill for TextEncoder/TextDecoder and other web APIs
-if (typeof TextEncoder === 'undefined') {
-  global.TextEncoder = require('util').TextEncoder;
+import { TextEncoder, TextDecoder } from 'util';
+
+if (typeof global.TextEncoder === 'undefined') {
+  global.TextEncoder = TextEncoder;
 }
 
-if (typeof TextDecoder === 'undefined') {
-  global.TextDecoder = require('util').TextDecoder;
+if (typeof global.TextDecoder === 'undefined') {
+  global.TextDecoder = TextDecoder as any; // Cast to any to resolve TS mismatch in test setup
 }
-
 // Polyfill for Request/Response
 if (typeof Request === 'undefined') {
   // Define a proper Request class that matches the expected interface
@@ -148,58 +150,36 @@ if (typeof Response === 'undefined') {
       return new MockResponse(null, {
         status: status || 302,
         headers: { Location: url.toString() }
-      });
+      })
     }
   };
 }
 
-// Import custom iterators
-const customIteratorsPath = './src/__tests__/mocks/custom-iterators';
-let HeadersIterator: any;
-
-try {
-  const customIterators = require(customIteratorsPath);
-  HeadersIterator = customIterators.HeadersIterator;
-} catch (e) {
-  // Define a minimal version if the module can't be loaded
-  class BasicHeadersIterator<T> implements Iterator<T> {
-    private iterator: Iterator<T>;
-    constructor(iterator: Iterator<T>) {
-      this.iterator = iterator;
-    }
-    next(value?: any): IteratorResult<T> {
-      return this.iterator.next(value);
-    }
-    [Symbol.iterator](): BasicHeadersIterator<T> {
-      return this;
-    }
-  }
-  HeadersIterator = BasicHeadersIterator;
-}
-
+// MapIterator is already imported at the top (line 3)
 if (typeof Headers === 'undefined') {
   // Define a proper Headers class that matches the expected interface
   global.Headers = class MockHeaders implements Headers {
     private _headers: Record<string, string> = {};
 
-    [Symbol.iterator](): HeadersIterator<[string, string]> {
-      return new HeadersIterator(Object.entries(this._headers)[Symbol.iterator]());
+    // Simplify iterator methods - cast to any to bypass complex type issues
+    [Symbol.iterator](): any {
+      return Object.entries(this._headers)[Symbol.iterator]();
     }
 
-    entries(): HeadersIterator<[string, string]> {
-      return new HeadersIterator(Object.entries(this._headers)[Symbol.iterator]());
+    entries(): any {
+      return Object.entries(this._headers)[Symbol.iterator]();
     }
 
-    keys(): HeadersIterator<string> {
-      return new HeadersIterator(Object.keys(this._headers)[Symbol.iterator]());
+    keys(): any {
+      return Object.keys(this._headers)[Symbol.iterator]();
     }
 
-    values(): HeadersIterator<string> {
-      return new HeadersIterator(Object.values(this._headers)[Symbol.iterator]());
+    values(): any {
+      return Object.values(this._headers)[Symbol.iterator]();
     }
 
     forEach(callback: (value: string, key: string, parent: Headers) => void): void {
-      Object.entries(this._headers).forEach(([key, value]) => callback(value, key, this as Headers));
+      Object.entries(this._headers).forEach(([key, value]) => callback(value, key, this as unknown as Headers));
     }
 
     constructor(init?: HeadersInit) {
@@ -289,26 +269,29 @@ if (typeof fetch === 'undefined') {
       }), { status: 200 }));
     }
 
-    // Handle documents endpoint
+    // Handle documents endpoint with a slight delay for testing loading states
     if (urlString.includes('/documents') && !urlString.includes('/documents/') && method === 'GET') {
-      return Promise.resolve(new Response(JSON.stringify([
-        {
-          id: 'doc-1',
-          title: 'Sample Resume',
-          source: 'Resume',
-          timestamp: Date.now(),
-          chunks: 3,
-        },
-        {
-          id: 'doc-2',
-          title: 'Job Description - Software Engineer',
-          source: 'Job Description',
-          timestamp: Date.now() - 86400000, // 1 day ago
-          chunks: 2,
-        },
-      ]), { status: 200 }));
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(new Response(JSON.stringify([
+            {
+              id: 'doc-1',
+              title: 'Sample Resume',
+              source: 'Resume',
+              timestamp: Date.now(),
+              chunks: 3,
+            },
+            {
+              id: 'doc-2',
+              title: 'Job Description - Software Engineer',
+              source: 'Job Description',
+              timestamp: Date.now() - 86400000, // 1 day ago
+              chunks: 2,
+            },
+          ]), { status: 200 }));
+        }, 10); // Small delay (10ms)
+      });
     }
-
     // Handle document deletion
     if (urlString.includes('/documents/') && method === 'DELETE') {
       const documentId = urlString.split('/').pop();
@@ -345,6 +328,65 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '',
   useSearchParams: () => new URLSearchParams(),
 }));
+
+// Create a proper RequestCookies mock
+// Use the imported MapIterator
+  class MockRequestCookies implements Map<string, string> {
+    private cookies: Map<string, string> = new Map();
+
+    // Add Symbol.toStringTag property required by Map
+    readonly [Symbol.toStringTag]: string = 'Map';
+
+    get size(): number {
+      return this.cookies.size;
+    }
+
+    clear(): void {
+      this.cookies.clear();
+    }
+
+    delete(key: string): boolean {
+      return this.cookies.delete(key);
+    }
+
+    forEach(callbackfn: (value: string, key: string, map: Map<string, string>) => void): void {
+      this.cookies.forEach(callbackfn);
+    }
+
+    get(key: string): string | undefined {
+      return this.cookies.get(key);
+    }
+
+    getAll(): { name: string; value: string }[] {
+      return Array.from(this.cookies.entries()).map(([name, value]) => ({ name, value }));
+    }
+
+    has(key: string): boolean {
+      return this.cookies.has(key);
+    }
+
+    set(key: string, value: string): this {
+      this.cookies.set(key, value);
+      return this;
+    }
+
+    // Use the imported MapIterator type
+    [Symbol.iterator](): MapIterator<[string, string]> {
+      return new MapIterator(this.cookies[Symbol.iterator]());
+    }
+
+    entries(): MapIterator<[string, string]> {
+      return new MapIterator(this.cookies.entries());
+    }
+
+    keys(): MapIterator<string> {
+      return new MapIterator(this.cookies.keys());
+    }
+
+    values(): MapIterator<string> {
+      return new MapIterator(this.cookies.values());
+    }
+  }
 
 jest.mock('next/server', () => {
   // Create a proper NextURL mock
@@ -399,67 +441,6 @@ jest.mock('next/server', () => {
 
     formatSearch(): string {
       return this.search;
-    }
-  }
-
-  // Create a proper RequestCookies mock
-  // Import MapIterator directly to avoid circular dependencies
-  const { MapIterator } = require('./src/__tests__/mocks/custom-iterators');
-
-  class MockRequestCookies implements Map<string, string> {
-    private cookies: Map<string, string> = new Map();
-
-    // Add Symbol.toStringTag property required by Map
-    readonly [Symbol.toStringTag]: string = 'Map';
-
-    get size(): number {
-      return this.cookies.size;
-    }
-
-    clear(): void {
-      this.cookies.clear();
-    }
-
-    delete(key: string): boolean {
-      return this.cookies.delete(key);
-    }
-
-    forEach(callbackfn: (value: string, key: string, map: Map<string, string>) => void): void {
-      this.cookies.forEach(callbackfn);
-    }
-
-    get(key: string): string | undefined {
-      return this.cookies.get(key);
-    }
-
-    getAll(): { name: string; value: string }[] {
-      return Array.from(this.cookies.entries()).map(([name, value]) => ({ name, value }));
-    }
-
-    has(key: string): boolean {
-      return this.cookies.has(key);
-    }
-
-    set(key: string, value: string): this {
-      this.cookies.set(key, value);
-      return this;
-    }
-
-    // Use MapIterator for these methods to match the Map interface
-    [Symbol.iterator](): MapIterator<[string, string]> {
-      return new MapIterator(this.cookies[Symbol.iterator]());
-    }
-
-    entries(): MapIterator<[string, string]> {
-      return new MapIterator(this.cookies.entries());
-    }
-
-    keys(): MapIterator<string> {
-      return new MapIterator(this.cookies.keys());
-    }
-
-    values(): MapIterator<string> {
-      return new MapIterator(this.cookies.values());
     }
   }
 
@@ -603,3 +584,65 @@ const localStorageMock = (function() {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
+
+// Mock the sonner library
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+    info: jest.fn(),
+    loading: jest.fn(),
+    promise: jest.fn(),
+    custom: jest.fn(),
+    dismiss: jest.fn(),
+  },
+}));
+
+// Polyfill for BroadcastChannel (needed by msw)
+if (typeof BroadcastChannel === 'undefined') {
+  global.BroadcastChannel = class MockBroadcastChannel {
+    name: string;
+    onmessage: ((event: MessageEvent) => void) | null = null;
+    onmessageerror: ((event: MessageEvent) => void) | null = null;
+
+    constructor(name: string) {
+      this.name = name;
+      console.warn(`BroadcastChannel polyfill used for channel: ${name}. Real functionality is limited.`);
+    }
+
+    postMessage(message: any): void {
+      // No-op in this basic polyfill
+      console.log(`BroadcastChannel polyfill: postMessage called on ${this.name} with`, message);
+    }
+
+    close(): void {
+      // No-op
+      console.log(`BroadcastChannel polyfill: close called on ${this.name}`);
+    }
+
+    addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
+      // No-op
+    }
+
+    removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
+      // No-op
+    }
+
+    dispatchEvent(event: Event): boolean {
+      // No-op
+      return true;
+    }
+  };
+}
+
+// Polyfill for crypto.subtle
+if (typeof crypto === 'undefined') {
+  (global as any).crypto = {};
+}
+if (typeof crypto.subtle === 'undefined') {
+  (global as any).crypto.subtle = {
+    digest: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    // Add other methods if needed by your tests
+  };
+}

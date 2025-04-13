@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
+
 import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
 /**
  * API route for listing documents in the AutoRAG system

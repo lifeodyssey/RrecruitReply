@@ -1,16 +1,18 @@
 'use client';
 
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import React, { ReactElement , Suspense } from "react";
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
-import { Suspense } from 'react';
+
 
 /**
  * Component that uses useSearchParams() hook
  * This must be wrapped in a Suspense boundary
  */
-function SearchParamsProvider({ children }: { children: (errorCode: string | null) => React.ReactNode }) {
+function SearchParamsProvider({ children }: { children: (errorCode: string | null) => React.ReactNode }): ReactElement {
   const searchParams = useSearchParams();
   const errorCode = searchParams?.get('error');
 
@@ -21,7 +23,7 @@ function SearchParamsProvider({ children }: { children: (errorCode: string | nul
  * Error content component that receives the error code as a prop
  * instead of using useSearchParams directly
  */
-function ErrorContent({ errorCode }: { errorCode: string | null }) {
+function ErrorContent({ errorCode }: { errorCode: string | null }): ReactElement {
   let errorTitle = 'Authentication Error';
   let errorMessage = 'An error occurred during authentication. Please try again.';
 
@@ -75,7 +77,7 @@ function ErrorContent({ errorCode }: { errorCode: string | null }) {
  * Error page wrapper component
  * Properly wraps components using useSearchParams in Suspense
  */
-function ErrorPageContent() {
+function ErrorPageContent(): ReactElement {
   return (
     <SearchParamsProvider>
       {(errorCode) => <ErrorContent errorCode={errorCode} />}
@@ -88,7 +90,7 @@ function ErrorPageContent() {
  *
  * This page displays error messages related to authentication.
  */
-export default function AuthErrorPage() {
+export default function AuthErrorPage(): ReactElement {
   return (
     <Suspense fallback={
       <div className="flex min-h-screen flex-col items-center justify-center p-4">

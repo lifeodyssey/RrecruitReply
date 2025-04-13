@@ -1,7 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AdminLoginPage from '../page';
-import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+
+import AdminLoginPage from '../page';
+
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({

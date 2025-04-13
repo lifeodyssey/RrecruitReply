@@ -1,8 +1,12 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
+import React, { ReactElement } from "react";
+import { Toaster } from "sonner";
+
 import { AuthProvider } from "@/components/auth/AuthProvider";
+
+
+import type { Metadata } from "next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +28,7 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>): ReactElement {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>

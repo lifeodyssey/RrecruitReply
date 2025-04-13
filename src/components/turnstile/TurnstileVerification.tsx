@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { TurnstileWidget } from './TurnstileWidget';
-import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
+import { Loader2 } from 'lucide-react';
+import React, { ReactElement , useState } from "react";
+
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
+
+import { TurnstileWidget } from './TurnstileWidget';
 
 // Get the site key from environment variables
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
@@ -20,7 +23,7 @@ interface TurnstileVerificationProps {
  * This component handles the verification flow for Cloudflare Turnstile,
  * showing a CAPTCHA widget and handling the verification process.
  */
-export function TurnstileVerification({ onVerificationComplete }: TurnstileVerificationProps) {
+export function TurnstileVerification({ onVerificationComplete }: TurnstileVerificationProps): ReactElement {
   const { isVerified, isLoading, verifyToken } = useTurnstileVerification();
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -28,11 +31,11 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
   // If already verified, call the completion handler
   if (isVerified && !isLoading) {
     onVerificationComplete();
-    return null;
+    return <></>;
   }
 
   // Handle token verification
-  const handleVerify = async (token: string) => {
+  const handleVerify = async (token: string): Promise<void> => {
     setIsVerifying(true);
     setVerificationError(null);
 
@@ -53,7 +56,7 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
   };
 
   // Handle verification errors
-  const handleError = (error: Error) => {
+  const handleError = (error: Error): void => {
     console.error('Turnstile error:', error);
     setVerificationError('An error occurred with the verification widget. Please try again.');
   };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -42,7 +42,7 @@ export function TurnstileWidget({
   onError,
   theme = 'auto',
   className = '',
-}: TurnstileWidgetProps) {
+}: TurnstileWidgetProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
@@ -53,7 +53,7 @@ export function TurnstileWidget({
     // Render the widget
     const id = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      callback: (token) => {
+      callback: (token): void => {
         onVerify(token);
       },
       'expired-callback': onExpire,
@@ -64,7 +64,7 @@ export function TurnstileWidget({
     widgetIdRef.current = id;
 
     // Clean up on unmount
-    return () => {
+    return (): void => {
       if (window.turnstile && widgetIdRef.current) {
         window.turnstile.reset(widgetIdRef.current);
       }

@@ -4,8 +4,8 @@
  * This module provides a concrete implementation of the DocumentRepository interface
  * for interacting with the AutoRAG Worker API.
  */
-import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
+import { DocumentRepository } from '@/domain/repositories/document-repository';
 
 export interface ErrorResponse {
   error: string;

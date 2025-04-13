@@ -1,28 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { autoragClient } from '@/lib/autorag/client';
 import { toast } from 'sonner';
 
-// Define message types
-export type MessageRole = 'user' | 'assistant';
-
-export interface Message {
-  id: string;
-  role: MessageRole;
-  content: string;
-  timestamp: Date;
-  sources?: Array<{
-    id: string;
-    title: string;
-    source: string;
-    content: string;
-    similarity: number;
-  }>;
-}
+import { Message } from '@/domain/models/chat';
+import { autoragClient } from '@/lib/autorag/client';
 
 /**
  * Custom hook for managing chat messages
  */
-export function useChatMessages(): { messages: Message[]; isLoading: boolean; sendMessage: (messageText: string) => Promise<void>; clearConversation: () => void; } {
+export function useChatMessages(): { 
+  messages: Message[]; 
+  isLoading: boolean; 
+  sendMessage: (messageText: string) => Promise<void>; 
+  clearConversation: () => void; 
+} {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 

@@ -1,10 +1,13 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import React, { ReactElement } from "react";
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
 
 /**
  * Admin dashboard page
@@ -12,7 +15,7 @@ import { redirect } from 'next/navigation';
  * This page serves as the main dashboard for administrators.
  * It's protected by the middleware and requires authentication.
  */
-export default function AdminDashboardPage() {
+export default function AdminDashboardPage(): ReactElement {
   const { data: session, status } = useSession();
 
   // If not authenticated, redirect to login
@@ -31,7 +34,7 @@ export default function AdminDashboardPage() {
   }
 
   // Handle sign out
-  const handleSignOut = () => {
+  const handleSignOut = (): void => {
     signOut({ callbackUrl: '/' });
   };
 
@@ -96,7 +99,7 @@ export default function AdminDashboardPage() {
                 <span className="font-medium">Email:</span> {session?.user?.email}
               </p>
               <p className="text-sm">
-                <span className="font-medium">Role:</span> {(session?.user as any)?.role || 'admin'}
+                <span className="font-medium">Role:</span> {(session?.user as { role?: string })?.role || 'admin'}
               </p>
             </div>
           </CardContent>

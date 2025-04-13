@@ -20,10 +20,13 @@ describe('MockNextRequest', () => {
   });
 });
 
-import { NextRequest } from 'next/server';
+// Removed unused import: import { NextRequest } from 'next/server';
+
+// Import MapIterator to ensure correct Map interface implementation
+import { MapIterator } from './custom-iterators';
 
 // Define the internal structure for NextURL
-interface NextURLInternal {
+interface _NextURLInternal {
   basePath: string;
   buildId: string;
   locale: string | undefined;
@@ -55,7 +58,7 @@ export class MockNextURL implements URL {
 
   // Internal property for NextURL
   // Use a private property instead of a computed property name
-  private readonly _nextURLInternal: any = {
+  private readonly _nextURLInternal: Record<string, unknown> = {
     basePath: '',
     buildId: '',
     locale: undefined,
@@ -105,7 +108,7 @@ export class MockNextURL implements URL {
 }
 
 // Define the internal structure for NextRequest
-interface NextRequestInternal {
+interface _NextRequestInternal {
   cookies: Map<string, string>;
   nextUrl: MockNextURL;
   ip?: string;
@@ -114,7 +117,7 @@ interface NextRequestInternal {
 }
 
 // Mock RequestCookie interface
-interface RequestCookie {
+interface _RequestCookie {
   name: string;
   value: string;
 }
@@ -153,20 +156,20 @@ class MockRequestCookies implements Map<string, string> {
     return this;
   }
 
-  entries(): any {
-    return this.cookies.entries();
+  entries(): MapIterator<[string, string]> {
+    return new MapIterator(this.cookies.entries());
   }
 
-  keys(): any {
-    return this.cookies.keys();
+  keys(): MapIterator<string> {
+    return new MapIterator(this.cookies.keys());
   }
 
-  values(): any {
-    return this.cookies.values();
+  values(): MapIterator<string> {
+    return new MapIterator(this.cookies.values());
   }
 
-  [Symbol.iterator](): any {
-    return this.cookies.entries();
+  [Symbol.iterator](): MapIterator<[string, string]> {
+    return new MapIterator(this.cookies.entries());
   }
 
   get [Symbol.toStringTag](): string {
@@ -209,10 +212,10 @@ export class MockNextRequest implements Request {
 
   // Internal property for NextRequest
   // Use a private property instead of a computed property name
-  private readonly _nextRequestInternal: any;
+  private readonly _nextRequestInternal: Record<string, unknown>;
 
   // Mock data for tests
-  private mockJsonData: any = {};
+  private mockJsonData: Record<string, unknown> = {};
 
   constructor(url: string, options: { method?: string; headers?: HeadersInit; body?: string } = {}) {
     this.url = url;
@@ -222,11 +225,7 @@ export class MockNextRequest implements Request {
     this.cookies = new MockRequestCookies();
 
     if (options.body) {
-      try {
-        this.mockJsonData = JSON.parse(options.body);
-      } catch (e) {
-        this.mockJsonData = {};
-      }
+      this.mockJsonData = JSON.parse(options.body || '{}');
     }
 
     // Initialize the internal property
@@ -240,7 +239,7 @@ export class MockNextRequest implements Request {
   }
 
   // Request methods
-  async json(): Promise<any> {
+  async json(): Promise<Record<string, unknown>> {
     return this.mockJsonData;
   }
 

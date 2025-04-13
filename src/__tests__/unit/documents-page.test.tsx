@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
+
 import DocumentsPage from '@/app/documents/page';
 
 // Store cleanup functions for fetch mocks
@@ -26,20 +27,24 @@ describe('DocumentsPage', () => {
 
     expect(screen.getByText('Document Management')).toBeInTheDocument();
   });
+it('displays loading state initially', async () => {
+  const rendered = render(<DocumentsPage />);
 
-  it('displays loading state initially', async () => {
-    render(<DocumentsPage />);
+  // Add a check to ensure rendered is defined
+  if (!rendered) {
+    throw new Error('Component failed to render');
+  }
 
-    expect(screen.getByText('Loading documents...')).toBeInTheDocument();
-  });
+  // Use findByText instead of getByText to wait for the element to appear
+  const loadingElement = await rendered.findByText('Loading documents...');
+  expect(loadingElement).toBeInTheDocument();
+});
+
 
   it('displays documents after loading', async () => {
     render(<DocumentsPage />);
-
-    // Wait for the documents to load
-    await waitFor(() => {
-      expect(screen.queryByText('Loading documents...')).not.toBeInTheDocument();
-    });
+    // Wait for the documents to load by finding an expected element
+    await screen.findByText('Sample Resume');
 
     // Check if documents are displayed
     expect(screen.getByText('Sample Resume')).toBeInTheDocument();
@@ -48,11 +53,8 @@ describe('DocumentsPage', () => {
 
   it('filters documents by type', async () => {
     render(<DocumentsPage />);
-
-    // Wait for the documents to load
-    await waitFor(() => {
-      expect(screen.queryByText('Loading documents...')).not.toBeInTheDocument();
-    });
+    // Wait for the documents to load by finding an expected element
+    await screen.findByText('Sample Resume');
 
     // Click on the Resumes tab
     fireEvent.click(screen.getByRole('tab', { name: 'Resumes' }));
@@ -67,7 +69,6 @@ describe('DocumentsPage', () => {
 
   it('opens the upload dialog when clicking the upload button', async () => {
     render(<DocumentsPage />);
-
     // Click on the Upload Document button
     fireEvent.click(screen.getByRole('button', { name: 'Upload Document' }));
 
@@ -83,11 +84,8 @@ describe('DocumentsPage', () => {
     window.confirm = jest.fn(() => true);
 
     render(<DocumentsPage />);
-
-    // Wait for the documents to load
-    await waitFor(() => {
-      expect(screen.queryByText('Loading documents...')).not.toBeInTheDocument();
-    });
+    // Wait for the documents to load by finding an expected element
+    await screen.findByText('Sample Resume');
 
     // Find all delete buttons and click the first one
     const deleteButtons = screen.getAllByRole('button', { name: 'Delete' });
@@ -110,7 +108,6 @@ describe('DocumentsPage', () => {
     cleanupFunctions.push(cleanup);
 
     render(<DocumentsPage />);
-
     // Wait for the error state
     await waitFor(() => {
       expect(screen.getByText('No documents found. Upload some documents to get started.')).toBeInTheDocument();

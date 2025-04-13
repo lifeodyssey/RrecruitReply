@@ -1,14 +1,16 @@
 /**
  * Document service for handling document operations
  */
-import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
+import { DocumentRepository } from '@/domain/repositories/document-repository';
+
 import {
   QueryRequestDto,
   QueryResponseDto,
   DocumentDto,
   UploadResponseDto,
-  DeleteResponseDto
+  DeleteResponseDto,
+  SourceDto
 } from '../dtos/document-dtos';
 import { ValidationError } from '../errors/application-errors';
 
@@ -30,27 +32,27 @@ export class DocumentService {
     deleteResult: DtoMapper<DeleteResult, DeleteResponseDto>
   };
 
-  constructor(private readonly documentRepository: DocumentRepository) {
+  public constructor(private readonly documentRepository: DocumentRepository) {
     // Initialize mappers
     this.mappers = {
       document: {
         toDto: (document: Document): DocumentDto => ({
           id: document.id,
           title: document.title,
-          source: document.source,
-          timestamp: document.timestamp,
-          chunks: document.chunks
+          filename: document.filename,
+          uploadDate: document.timestamp,
+          source: document.source ? {
+            name: document.source.name,
+            url: document.source.url
+          } : undefined
         })
       },
       queryResult: {
         toDto: (result: QueryResult): QueryResponseDto => ({
           answer: result.answer,
           sources: result.sources.map(source => ({
-            id: source.id,
-            title: source.title,
-            source: source.source,
-            content: source.content,
-            similarity: source.similarity
+            name: source.title,
+            url: source.url
           }))
         })
       },
@@ -58,13 +60,14 @@ export class DocumentService {
         toDto: (result: UploadResult): UploadResponseDto => ({
           success: result.success,
           documentId: result.documentId,
-          chunks: result.chunks
+          message: `Document ${result.documentId} uploaded successfully`
         })
       },
       deleteResult: {
         toDto: (result: DeleteResult): DeleteResponseDto => ({
           success: result.success,
-          documentId: result.documentId
+          documentId: result.documentId,
+          message: `Document ${result.documentId} deleted successfully`
         })
       }
     };
@@ -73,7 +76,7 @@ export class DocumentService {
   /**
    * Query the document repository
    */
-  async query(queryDto: QueryRequestDto): Promise<QueryResponseDto> {
+  public async query(queryDto: QueryRequestDto): Promise<QueryResponseDto> {
     if (!queryDto.query || typeof queryDto.query !== 'string') {
       throw new ValidationError('Query is required and must be a string');
     }
@@ -89,7 +92,7 @@ export class DocumentService {
   /**
    * List all documents
    */
-  async listDocuments(): Promise<DocumentDto[]> {
+  public async listDocuments(): Promise<DocumentDto[]> {
     const documents = await this.documentRepository.listDocuments();
     return documents.map(doc => this.mappers.document.toDto(doc));
   }
@@ -97,7 +100,7 @@ export class DocumentService {
   /**
    * Upload a document
    */
-  async uploadDocument(file: File, title: string, source?: string): Promise<UploadResponseDto> {
+  public async uploadDocument(file: File, title: string, source?: string): Promise<UploadResponseDto> {
     if (!file) {
       throw new ValidationError('File is required');
     }
@@ -113,7 +116,7 @@ export class DocumentService {
   /**
    * Delete a document
    */
-  async deleteDocument(documentId: string): Promise<DeleteResponseDto> {
+  public async deleteDocument(documentId: string): Promise<DeleteResponseDto> {
     if (!documentId) {
       throw new ValidationError('Document ID is required');
     }

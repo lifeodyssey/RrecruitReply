@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+
 import { middleware } from '../../middleware';
+
+import type { NextRequest } from 'next/server';
+
 
 // Import the types from the dom-extensions.d.ts file
 /// <reference path="../../types/dom-extensions.d.ts" />
@@ -15,6 +18,7 @@ const MOCK_INTERNALS = Symbol('MOCK_INTERNALS');
 
 // Import custom iterators
 import './mocks/custom-iterators';
+
 
 // Define the NextURL class that matches the expected interface
 // Create a minimal implementation that satisfies the NextURL interface
@@ -220,7 +224,7 @@ class MockNextRequest {
   }
 
   // Request methods
-  json(): Promise<any> {
+  json(): Promise<unknown> {
     return Promise.resolve({});
   }
 
@@ -228,15 +232,15 @@ class MockNextRequest {
     return Promise.resolve('');
   }
 
-  blob(): Promise<Blob> {
+  blob(): Promise<Blob | unknown> {
     return Promise.resolve(new Blob([]));
   }
 
-  arrayBuffer(): Promise<ArrayBuffer> {
+  arrayBuffer(): Promise<ArrayBuffer | unknown> {
     return Promise.resolve(new ArrayBuffer(0));
   }
 
-  formData(): Promise<FormData> {
+  formData(): Promise<FormData | unknown> {
     return Promise.resolve(new FormData());
   }
 

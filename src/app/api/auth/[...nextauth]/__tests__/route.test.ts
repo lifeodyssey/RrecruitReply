@@ -5,9 +5,10 @@ jest.mock('../route', () => ({
   POST: jest.fn(),
 }));
 
-import { GET, POST } from '../route';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import EmailProvider from 'next-auth/providers/email';
+
+import { GET, POST } from '../route';
 
 // Mock prisma
 jest.mock('@/lib/prisma', () => ({
@@ -16,7 +17,7 @@ jest.mock('@/lib/prisma', () => ({
 
 // Mock next-auth
 jest.mock('next-auth', () => {
-  const mockNextAuth = jest.fn().mockImplementation((config) => {
+  const mockNextAuth = jest.fn().mockImplementation((_config) => {
     // Return an object with GET and POST handlers
     return {
       GET: jest.fn(),
@@ -32,7 +33,7 @@ jest.mock('next-auth', () => {
 });
 
 // Get the mocked NextAuth function
-const NextAuth = jest.requireMock('next-auth');
+const _NextAuth = jest.requireMock('next-auth');
 
 // Mock @auth/prisma-adapter
 jest.mock('@auth/prisma-adapter', () => ({

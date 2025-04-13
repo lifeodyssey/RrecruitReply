@@ -1,11 +1,16 @@
 /**
  * Mock implementation of DocumentRepository for testing
  */
-import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
+import { DocumentRepository } from '@/domain/repositories/document-repository';
 
-// Default mock data
-const DEFAULT_DOCUMENTS: Document[] = [
+// Helper function for deep cloning objects in environments without structuredClone
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+// Default mock data in a separate constant for better maintainability
+export const DEFAULT_DOCUMENTS: Document[] = [
   {
     id: 'doc-1',
     title: 'Benefits Overview',
@@ -22,7 +27,7 @@ const DEFAULT_DOCUMENTS: Document[] = [
   }
 ];
 
-const DEFAULT_QUERY_RESULT: QueryResult = {
+export const DEFAULT_QUERY_RESULT: QueryResult = {
   answer: 'The company offers health insurance, 401k matching, and paid time off.',
   sources: [
     {
@@ -35,32 +40,61 @@ const DEFAULT_QUERY_RESULT: QueryResult = {
   ]
 };
 
+/**
+ * Implementation of DocumentRepository for testing purposes
+ * Follows the repository pattern and provides methods for CRUD operations
+ */
 export class MockDocumentRepository implements DocumentRepository {
-  // Mock data
+  // Mock data state
   private mockDocuments: Document[];
   private mockQueryResult: QueryResult;
 
   /**
    * Create a new MockDocumentRepository with optional custom mock data
+   * @param documents - Optional initial document collection
+   * @param queryResult - Optional query result to return
    */
   constructor(
     documents: Document[] = DEFAULT_DOCUMENTS,
     queryResult: QueryResult = DEFAULT_QUERY_RESULT
   ) {
-    this.mockDocuments = [...documents]; // Clone to avoid reference issues
-    this.mockQueryResult = {...queryResult}; // Clone to avoid reference issues
+    this.mockDocuments = deepClone(documents); // Use deepClone for compatibility
+    this.mockQueryResult = deepClone(queryResult);
   }
 
-  // Mock implementations
+  /**
+   * Query the repository with a natural language query
+   * @param _query - The query string (unused in mock implementation)
+   * @returns Promise<QueryResult> - The mocked query result
+   */
   async query(_query: string): Promise<QueryResult> {
-    return this.mockQueryResult;
+    return deepClone(this.mockQueryResult);
   }
 
+  /**
+   * List all documents in the repository
+   * @returns Promise<Document[]> - A copy of all documents
+   */
   async listDocuments(): Promise<Document[]> {
-    return this.mockDocuments;
+    return deepClone(this.mockDocuments);
   }
 
+  /**
+   * Upload a document to the repository
+   * @param file - The file to upload
+   * @param title - The document title
+   * @param source - Optional document source
+   * @returns Promise<UploadResult> - The upload result
+   */
   async uploadDocument(file: File, title: string, source?: string): Promise<UploadResult> {
+    if (!file) {
+      throw new Error('File is required');
+    }
+    
+    if (!title) {
+      throw new Error('Title is required');
+    }
+    
     const newDoc = {
       id: `doc-${this.mockDocuments.length + 1}`,
       title,
@@ -78,7 +112,17 @@ export class MockDocumentRepository implements DocumentRepository {
     };
   }
 
+  /**
+   * Delete a document from the repository
+   * @param documentId - The ID of the document to delete
+   * @returns Promise<DeleteResult> - The delete result
+   * @throws Error if document not found
+   */
   async deleteDocument(documentId: string): Promise<DeleteResult> {
+    if (!documentId) {
+      throw new Error('Document ID is required');
+    }
+    
     const index = this.mockDocuments.findIndex(doc => doc.id === documentId);
 
     if (index === -1) {
@@ -93,12 +137,21 @@ export class MockDocumentRepository implements DocumentRepository {
     };
   }
 
-  // Methods for test control
+  // Test control methods
+
+  /**
+   * Set mock documents for testing
+   * @param documents - The documents to set
+   */
   setMockDocuments(documents: Document[]): void {
-    this.mockDocuments = [...documents]; // Clone to avoid reference issues
+    this.mockDocuments = deepClone(documents);
   }
 
+  /**
+   * Set mock query result for testing
+   * @param result - The query result to set
+   */
   setMockQueryResult(result: QueryResult): void {
-    this.mockQueryResult = {...result}; // Clone to avoid reference issues
+    this.mockQueryResult = deepClone(result);
   }
 }
