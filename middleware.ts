@@ -13,13 +13,10 @@ export async function middleware(request: NextRequest) {
 
   // Check if the path is for admin routes
   if (path.startsWith('/admin') && !path.startsWith('/admin/login') && !path.startsWith('/admin/error')) {
-    const session = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
+    const isAuthenticated = await checkAuthentication(request);
+    
     // Redirect to login if not authenticated
-    if (!session) {
+    if (!isAuthenticated) {
       const url = new URL('/admin/login', request.url);
       url.searchParams.set('callbackUrl', encodeURI(request.url));
       return NextResponse.redirect(url);
@@ -28,13 +25,10 @@ export async function middleware(request: NextRequest) {
 
   // Check if the path is for admin API routes
   if (path.startsWith('/api/admin')) {
-    const session = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
+    const isAuthenticated = await checkAuthentication(request);
+    
     // Return unauthorized if not authenticated
-    if (!session) {
+    if (!isAuthenticated) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -43,6 +37,18 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
+}
+
+/**
+ * Helper function to check if a user is authenticated
+ */
+async function checkAuthentication(request: NextRequest): Promise<boolean> {
+  const session = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  
+  return !!session;
 }
 
 export const config = {

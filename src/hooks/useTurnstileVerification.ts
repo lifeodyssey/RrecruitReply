@@ -2,8 +2,28 @@
 
 import { useState, useEffect } from 'react';
 
-const VERIFICATION_STORAGE_KEY = 'turnstile-verification';
-const VERIFICATION_EXPIRY_TIME = 24 * 60 * 60 * 1000; // 24 hours
+// Constants
+const STORAGE = {
+  KEY: 'turnstile-verification',
+};
+
+const TIME = {
+  HOURS_IN_DAY: 24,
+  MINUTES_IN_HOUR: 60,
+  SECONDS_IN_MINUTE: 60,
+  MS_IN_SECOND: 1000,
+};
+
+// Calculated constants
+const VERIFICATION_EXPIRY_TIME = 
+  TIME.HOURS_IN_DAY * 
+  TIME.MINUTES_IN_HOUR * 
+  TIME.SECONDS_IN_MINUTE * 
+  TIME.MS_IN_SECOND; // 24 hours in milliseconds
+
+const API = {
+  VERIFY_ENDPOINT: '/api/turnstile/verify',
+};
 
 interface VerificationState {
   verified: boolean;
@@ -22,7 +42,7 @@ export function useTurnstileVerification() {
 
   // Load verification state from localStorage on mount
   useEffect(() => {
-    const storedVerification = localStorage.getItem(VERIFICATION_STORAGE_KEY);
+    const storedVerification = localStorage.getItem(STORAGE.KEY);
     
     if (storedVerification) {
       try {
@@ -34,11 +54,11 @@ export function useTurnstileVerification() {
           setIsVerified(true);
         } else {
           // Clear expired verification
-          localStorage.removeItem(VERIFICATION_STORAGE_KEY);
+          localStorage.removeItem(STORAGE.KEY);
         }
       } catch (error) {
         console.error('Error parsing verification state:', error);
-        localStorage.removeItem(VERIFICATION_STORAGE_KEY);
+        localStorage.removeItem(STORAGE.KEY);
       }
     }
     
@@ -50,7 +70,7 @@ export function useTurnstileVerification() {
     try {
       setIsLoading(true);
       
-      const response = await fetch('/api/turnstile/verify', {
+      const response = await fetch(API.VERIFY_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +88,7 @@ export function useTurnstileVerification() {
         };
         
         localStorage.setItem(
-          VERIFICATION_STORAGE_KEY,
+          STORAGE.KEY,
           JSON.stringify(verificationState)
         );
         
@@ -87,7 +107,7 @@ export function useTurnstileVerification() {
 
   // Function to reset verification state
   const resetVerification = () => {
-    localStorage.removeItem(VERIFICATION_STORAGE_KEY);
+    localStorage.removeItem(STORAGE.KEY);
     setIsVerified(false);
   };
 

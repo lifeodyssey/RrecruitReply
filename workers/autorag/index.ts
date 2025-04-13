@@ -32,6 +32,45 @@ interface QueryResponse {
   }>;
 }
 
+// Type guard for AI embedding response
+interface EmbeddingResponse {
+  data: number[][];
+}
+
+function isEmbeddingResponse(obj: unknown): obj is EmbeddingResponse {
+  const resp = obj as Partial<EmbeddingResponse>;
+  return resp !== null &&
+    typeof resp === 'object' &&
+    Array.isArray(resp.data) &&
+    resp.data.length > 0 &&
+    Array.isArray(resp.data[0]);
+}
+
+// Type guard for DocumentMetadata
+function isDocumentMetadata(obj: unknown): obj is DocumentMetadata {
+  const metadata = obj as Partial<DocumentMetadata>;
+  return metadata !== null &&
+    typeof metadata === 'object' &&
+    typeof metadata.id === 'string' &&
+    typeof metadata.title === 'string' &&
+    typeof metadata.source === 'string' &&
+    typeof metadata.timestamp === 'number' &&
+    typeof metadata.chunkIndex === 'number' &&
+    typeof metadata.totalChunks === 'number';
+}
+
+// Type guard for LLM response
+interface LlmResponse {
+  response: string;
+}
+
+function isLlmResponse(obj: unknown): obj is LlmResponse {
+  const resp = obj as Partial<LlmResponse>;
+  return resp !== null && 
+    typeof resp === 'object' && 
+    typeof resp.response === 'string';
+}
+
 export default {
   /**
    * Handle incoming requests to the worker
@@ -111,8 +150,13 @@ export default {
       // Retrieve the full content of the matched documents
       const sources = await Promise.all(
         results.matches.map(async (match) => {
-          // Cast to unknown first, then to DocumentMetadata
-          const metadata = match.metadata as unknown as DocumentMetadata;
+          // Use type guard for metadata
+          const metadata = match.metadata;
+          if (!isDocumentMetadata(metadata)) {
+            console.error('Invalid metadata format:', metadata);
+            return null;
+          }
+          
           const documentKey = `${metadata.id}/chunk_${metadata.chunkIndex}.txt`;
 
           // Get the document chunk from R2
@@ -129,8 +173,11 @@ export default {
         })
       );
 
+      // Filter out null values
+      const validSources = sources.filter((source): source is NonNullable<typeof source> => source !== null);
+
       // Combine the document contents to create context for the LLM
-      const context = sources.map((source) => source.content).join('\n\n');
+      const context = validSources.map((source) => source.content).join('\n\n');
 
       // Generate a response using the LLM
       const prompt = `
@@ -150,11 +197,15 @@ Answer:`;
         max_tokens: 500,
       });
 
+      if (!isLlmResponse(response)) {
+        throw new Error('Invalid LLM response format');
+      }
+
       // Return the response with sources
       return new Response(
         JSON.stringify({
-          answer: (response as { response: string }).response,
-          sources,
+          answer: response.response,
+          sources: validSources,
         } as QueryResponse),
         {
           headers: {
@@ -223,18 +274,21 @@ Answer:`;
         // Generate embeddings for the chunk
         const embedding = await this.generateEmbedding(chunk, env);
 
+        // Create the document metadata
+        const metadata: DocumentMetadata = {
+          id: documentId,
+          title,
+          source: source || 'Unknown',
+          timestamp,
+          chunkIndex: i,
+          totalChunks: chunks.length,
+        };
+
         // Store the embedding in the vector index with metadata
         await env.RECRUITREPLY_INDEX.insert({
           id: `${documentId}_${i}`,
           values: embedding,
-          metadata: {
-            id: documentId,
-            title,
-            source: source || 'Unknown',
-            timestamp,
-            chunkIndex: i,
-            totalChunks: chunks.length,
-          } as unknown as Record<string, unknown>,
+          metadata: metadata as unknown as Record<string, unknown>,
         });
       }
 
@@ -298,14 +352,20 @@ Answer:`;
 
           if (results.matches.length === 0) return null;
 
-          const metadata = results.matches[0].metadata as unknown as DocumentMetadata;
-          return {
-            id: metadata.id,
-            title: metadata.title,
-            source: metadata.source,
-            timestamp: metadata.timestamp,
-            chunks: metadata.totalChunks,
-          };
+          const metadata = results.matches[0].metadata;
+          
+          // Use type guard instead of unsafe casting
+          if (isDocumentMetadata(metadata)) {
+            return {
+              id: metadata.id,
+              title: metadata.title,
+              source: metadata.source,
+              timestamp: metadata.timestamp,
+              chunks: metadata.totalChunks,
+            };
+          }
+          
+          return null;
         })
       );
 
@@ -394,14 +454,21 @@ Answer:`;
       text: [text],
     });
 
-    // Ensure proper type casting of the response
-    return (response as { data: number[][] }).data[0];
+    // Use type guard instead of unsafe casting
+    if (isEmbeddingResponse(response)) {
+      return response.data[0];
+    }
+    
+    throw new Error('Invalid embedding response format');
   },
 
   /**
    * Split a document into chunks with overlap
+   * @deprecated Use the shared utility from src/lib/utils.ts instead
    */
   chunkDocument(text: string, chunkSize: number, overlap: number): string[] {
+    // This implementation remains for backward compatibility
+    // but we should migrate to using the shared utility
     const chunks: string[] = [];
     let startIndex = 0;
 

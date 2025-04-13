@@ -21,9 +21,9 @@ export class AutoRAGRepository implements DocumentRepository {
   }
 
   /**
-   * Get headers for API requests
+   * Get headers for API requests (JSON content type)
    */
-  private getHeaders(): HeadersInit {
+  private getJsonHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -36,12 +36,25 @@ export class AutoRAGRepository implements DocumentRepository {
   }
 
   /**
+   * Get authorization header only (for FormData requests)
+   */
+  private getAuthHeader(): HeadersInit {
+    if (!this.apiKey) {
+      return {};
+    }
+    
+    return {
+      'Authorization': `Bearer ${this.apiKey}`
+    };
+  }
+
+  /**
    * Query the AutoRAG system
    */
   async query(query: string, conversationId?: string): Promise<QueryResult> {
     const response = await fetch(`${this.baseUrl}/query`, {
       method: 'POST',
-      headers: this.getHeaders(),
+      headers: this.getJsonHeaders(),
       body: JSON.stringify({ query, conversationId }),
     });
 
@@ -67,7 +80,7 @@ export class AutoRAGRepository implements DocumentRepository {
 
     const response = await fetch(`${this.baseUrl}/upload`, {
       method: 'POST',
-      headers: this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {},
+      headers: this.getAuthHeader(),
       body: formData,
     });
 
@@ -85,7 +98,7 @@ export class AutoRAGRepository implements DocumentRepository {
   async listDocuments(): Promise<Document[]> {
     const response = await fetch(`${this.baseUrl}/documents`, {
       method: 'GET',
-      headers: this.getHeaders(),
+      headers: this.getJsonHeaders(),
     });
 
     if (!response.ok) {
@@ -102,7 +115,7 @@ export class AutoRAGRepository implements DocumentRepository {
   async deleteDocument(documentId: string): Promise<DeleteResult> {
     const response = await fetch(`${this.baseUrl}/documents/${documentId}`, {
       method: 'DELETE',
-      headers: this.getHeaders(),
+      headers: this.getJsonHeaders(),
     });
 
     if (!response.ok) {

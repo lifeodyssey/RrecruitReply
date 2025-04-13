@@ -4,37 +4,52 @@
 import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
 
-export class MockDocumentRepository implements DocumentRepository {
-  // Mock data
-  private mockDocuments: Document[] = [
+// Default mock data
+const DEFAULT_DOCUMENTS: Document[] = [
+  {
+    id: 'doc-1',
+    title: 'Benefits Overview',
+    source: 'HR Department',
+    timestamp: Date.now(),
+    chunks: 5
+  },
+  {
+    id: 'doc-2',
+    title: 'Recruitment Process',
+    source: 'HR Department',
+    timestamp: Date.now(),
+    chunks: 3
+  }
+];
+
+const DEFAULT_QUERY_RESULT: QueryResult = {
+  answer: 'The company offers health insurance, 401k matching, and paid time off.',
+  sources: [
     {
       id: 'doc-1',
       title: 'Benefits Overview',
       source: 'HR Department',
-      timestamp: Date.now(),
-      chunks: 5
-    },
-    {
-      id: 'doc-2',
-      title: 'Recruitment Process',
-      source: 'HR Department',
-      timestamp: Date.now(),
-      chunks: 3
+      content: 'Our company provides comprehensive health insurance...',
+      similarity: 0.92
     }
-  ];
+  ]
+};
 
-  private mockQueryResult: QueryResult = {
-    answer: 'The company offers health insurance, 401k matching, and paid time off.',
-    sources: [
-      {
-        id: 'doc-1',
-        title: 'Benefits Overview',
-        source: 'HR Department',
-        content: 'Our company provides comprehensive health insurance...',
-        similarity: 0.92
-      }
-    ]
-  };
+export class MockDocumentRepository implements DocumentRepository {
+  // Mock data
+  private mockDocuments: Document[];
+  private mockQueryResult: QueryResult;
+
+  /**
+   * Create a new MockDocumentRepository with optional custom mock data
+   */
+  constructor(
+    documents: Document[] = DEFAULT_DOCUMENTS,
+    queryResult: QueryResult = DEFAULT_QUERY_RESULT
+  ) {
+    this.mockDocuments = [...documents]; // Clone to avoid reference issues
+    this.mockQueryResult = {...queryResult}; // Clone to avoid reference issues
+  }
 
   // Mock implementations
   async query(_query: string): Promise<QueryResult> {
@@ -80,10 +95,10 @@ export class MockDocumentRepository implements DocumentRepository {
 
   // Methods for test control
   setMockDocuments(documents: Document[]): void {
-    this.mockDocuments = documents;
+    this.mockDocuments = [...documents]; // Clone to avoid reference issues
   }
 
   setMockQueryResult(result: QueryResult): void {
-    this.mockQueryResult = result;
+    this.mockQueryResult = {...result}; // Clone to avoid reference issues
   }
 }

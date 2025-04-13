@@ -69,3 +69,24 @@ export function safeJsonParse<T>(json: string, fallback: T): T {
     return fallback;
   }
 }
+
+/**
+ * Split a document into chunks with overlap
+ * 
+ * @param text The text to chunk
+ * @param chunkSize The size of each chunk
+ * @param overlap The amount of overlap between chunks
+ * @returns An array of text chunks
+ */
+export function chunkDocument(text: string, chunkSize: number, overlap: number): string[] {
+  const chunks: string[] = [];
+  let startIndex = 0;
+
+  while (startIndex < text.length) {
+    const endIndex = Math.min(startIndex + chunkSize, text.length);
+    chunks.push(text.substring(startIndex, endIndex));
+    startIndex += chunkSize - overlap;
+  }
+
+  return chunks;
+}

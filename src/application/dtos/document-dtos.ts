@@ -1,42 +1,22 @@
 /**
  * Data Transfer Objects for document operations
  */
+import { Document, Source, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
 
+// Request DTOs
 export interface QueryRequestDto {
   query: string;
   conversationId?: string;
 }
 
-export interface QueryResponseDto {
-  answer: string;
-  sources: Array<{
-    id: string;
-    title: string;
-    source: string;
-    content: string;
-    similarity: number;
-  }>;
-}
+// Response DTOs that just reference the domain models to avoid duplication
+export type SourceDto = Source;
+export type DocumentDto = Document;
+export type QueryResponseDto = QueryResult;
+export type UploadResponseDto = UploadResult;
+export type DeleteResponseDto = DeleteResult;
 
-export interface DocumentDto {
-  id: string;
-  title: string;
-  source: string;
-  timestamp: number;
-  chunks: number;
-}
-
-export interface UploadResponseDto {
-  success: boolean;
-  documentId: string;
-  chunks: number;
-}
-
-export interface DeleteResponseDto {
-  success: boolean;
-  documentId: string;
-}
-
+// Error DTO
 export interface ErrorResponseDto {
   error: string;
   status: number;

@@ -29,22 +29,7 @@ provider "cloudflare" {
 EOF
 }
 
-# Generate backend configuration for all child modules
-# Uncomment this when you're ready to use remote state
-# remote_state {
-#   backend = "s3"
-#   config = {
-#     bucket         = "${local.project_name}-terraform-state"
-#     key            = "${path_relative_to_include()}/terraform.tfstate"
-#     region         = "us-east-1"
-#     encrypt        = true
-#     dynamodb_table = "${local.project_name}-terraform-locks"
-#   }
-#   generate = {
-#     path      = "backend.tf"
-#     if_exists = "overwrite_terragrunt"
-#   }
-# }
+# Note: For remote state configuration, see docs/terraform-setup.md
 
 # Define inputs that are common to all modules
 inputs = {
