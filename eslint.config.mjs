@@ -54,30 +54,17 @@ const eslintConfig = [
       '@typescript-eslint': typescriptPlugin,
     },
     rules: {
-      // Strict TypeScript rules
-      '@typescript-eslint/no-explicit-any': 'error',
+      // Merged and disabled rules from .eslintrc.js
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/naming-convention': 'off',
+      '@typescript-eslint/consistent-type-imports': 'off',
+      
+      // Keep important TypeScript rules
       '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
       '@typescript-eslint/explicit-module-boundary-types': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-non-null-assertion': 'error',
-      '@typescript-eslint/naming-convention': [
-        'error',
-        {
-          selector: 'interface',
-          format: ['PascalCase'],
-          prefix: ['I'],
-        },
-        {
-          selector: 'typeAlias',
-          format: ['PascalCase'],
-        },
-        {
-          selector: 'enum',
-          format: ['PascalCase'],
-        },
-      ],
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
     },
   },
   // React specific rules
@@ -125,47 +112,30 @@ const eslintConfig = [
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
     rules: {
-      // SOLID principles related
-      'max-classes-per-file': ['error', 1],
-      'max-depth': ['error', 3],
-      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
-      'max-params': ['warn', 3],
-      'complexity': ['warn', 8],
+      // Disabled rules from .eslintrc.js
+      'max-lines-per-function': 'off',
+      'max-classes-per-file': 'off',
+      'complexity': 'off',
+      'max-depth': 'off',
+      'max-params': 'off',
+      'no-duplicate-imports': 'off',
+      'import/order': 'off',
+      'no-console': 'off',
+      'no-useless-constructor': 'off',
       
-      // Clean code
-      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
-      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      // Keep other important clean code rules
       'prefer-const': 'error',
       'no-var': 'error',
-      'no-duplicate-imports': 'error',
       'no-unused-expressions': 'error',
       'no-return-await': 'error',
       'no-useless-return': 'error',
       'no-else-return': 'error',
-      'no-useless-constructor': 'error',
       'no-empty-function': 'error',
       'arrow-body-style': ['error', 'as-needed'],
       'eqeqeq': ['error', 'always'],
       'curly': ['error', 'all'],
       
-      // Import organization
-      'import/order': [
-        'error',
-        {
-          'groups': [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-            'object',
-            'type',
-          ],
-          'newlines-between': 'always',
-          'alphabetize': { order: 'asc', caseInsensitive: true },
-        },
-      ],
+      // Sort imports but with relaxed rules
       'sort-imports': [
         'error',
         {

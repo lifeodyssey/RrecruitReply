@@ -98,3 +98,24 @@ If a specific tool cannot find its configuration:
 
 1. Move the configuration file back to the root directory
 2. Document the exception in this file 
+
+## 配置文件合并记录
+
+为了简化项目配置，我们合并了以下配置文件：
+
+1. **ESLint 配置**
+   - 合并 `.eslintrc.js` 和 `eslint.config.mjs`，保留了新的平面配置格式 `eslint.config.mjs`
+   - 禁用了一些过于严格的规则，同时保留了重要的代码质量规则
+
+2. **Vite/Vitest 配置**
+   - 合并 `vitest.config.ts` 到 `vite.config.ts`
+   - 添加了所有测试相关配置，包括 MSW 内联依赖和环境选项
+
+3. **PostCSS 配置**
+   - 合并 `postcss.config.js` 和 `postcss.config.cjs`，使用 ESM 格式 (`.js`)
+   - 支持 Tailwind CSS 和 @tailwindcss/postcss 插件
+
+4. **清理配置**
+   - 移除了 Jest 和 Babel 配置，因为项目已迁移到 Vitest
+   - 移除了自动生成的 `*.tsbuildinfo` 文件
+   - 保留 `tsconfig.json` 和 `tsconfig.build.json` 用于不同的构建目标 

@@ -123,23 +123,3 @@ interface ExecutionContext {
    */
   passThroughOnException(): void;
 }
-
-// Cloudflare Workers AI
-interface WorkersAI {
-  /**
-   * Run a model with the given inputs
-   */
-  run<T = unknown>(model: string, inputs: Record<string, unknown>): Promise<T>;
-}
-
-// Environment interface for the worker
-interface Env {
-  // Vectorize index
-  RECRUITREPLY_INDEX: VectorizeIndex;
-
-  // R2 bucket
-  DOCUMENTS: R2Bucket;
-
-  // Workers AI binding
-  AI: WorkersAI;
-}

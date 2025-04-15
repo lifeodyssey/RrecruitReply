@@ -15,8 +15,8 @@ Recruit-Reply uses the Cloudflare Auto RAG system to provide instant answers to 
 
 ## Technology Stack
 
-- **Frontend**: Vite, React, TypeScript, Tailwind CSS
-- **Backend**: Express server with Vite middlewares
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
 - **Testing**: Vitest, Testing Library
 - **RAG System**: Cloudflare Auto RAG
 - **Storage**: Cloudflare R2
@@ -27,9 +27,11 @@ Recruit-Reply uses the Cloudflare Auto RAG system to provide instant answers to 
 
 This project uses a modern, zero-config development stack:
 
-- **Vite**: Fast, modern build tool with minimal configuration
-- **Vitest**: Test runner compatible with Vite for seamless testing
-- **React Router**: Routing for single page applications
+- **Next.js**: React framework for production-grade applications
+- **Vitest**: Test runner with Jest-compatible API
+- **TailwindCSS**: Utility-first CSS framework
+- **Prisma**: Type-safe ORM for database access
+- **NextAuth.js**: Authentication for Next.js
 - **MSW**: API mocking for tests and development
 
 ## Getting Started
@@ -131,7 +133,7 @@ npm run build
 Preview the production build locally:
 
 ```bash
-npm run preview
+npm run start
 ```
 
 The application is automatically deployed to Cloudflare Pages when changes are pushed to the main branch.
@@ -141,29 +143,34 @@ The application is automatically deployed to Cloudflare Pages when changes are p
 ```
 recruit-reply/
 ├── src/                  # Source code
-│   ├── components/       # Reusable UI components
-│   ├── routes/           # Route components
+│   ├── app/              # Next.js App Router
+│   ├── components/       # Reusable UI components 
+│   ├── lib/              # Utility functions and helpers
 │   ├── domain/           # Domain models and business logic
 │   ├── application/      # Application services
 │   ├── infrastructure/   # External services, API clients, etc.
-│   ├── lib/              # Utility functions and helpers
 │   ├── hooks/            # Custom React hooks
 │   ├── features/         # Feature-specific code
 │   ├── types/            # TypeScript type definitions
 │   └── test/             # Test utilities and configs
 ├── public/               # Static assets
-├── index.html            # HTML entry point
-├── vite.config.ts        # Vite and Vitest configuration
-└── .eslintrc.json        # ESLint configuration
+├── prisma/               # Prisma schema and migrations
+├── docs/                 # Documentation
+├── next.config.ts        # Next.js configuration
+├── vite.config.ts        # Vitest configuration
+└── eslint.config.mjs     # ESLint configuration
 ```
 
 ## Configuration
 
-The project uses Vite's built-in configuration system, eliminating the need for numerous config files:
+The project uses Next.js configuration system while maintaining Vitest for testing:
 
-- **vite.config.ts**: Single configuration file for both build and test
+- **next.config.ts**: Configuration for Next.js
+- **vite.config.ts**: Configuration for Vitest
 - **tsconfig.json**: TypeScript configuration
-- **.eslintrc.json**: ESLint rules
+- **eslint.config.mjs**: ESLint rules (new flat config format)
+- **tailwind.config.js**: Tailwind CSS configuration
+- **postcss.config.js**: PostCSS configuration
 
 ## Contributing
 
@@ -175,7 +182,10 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ## Documentation
 
-- [Architecture Documentation](./ARCHITECTURE.md)
-- [Developer Guide](./DEVELOPER.md)
+For more detailed documentation, see the `docs` directory:
+
+- [Architecture Documentation](./docs/architecture/ARCHITECTURE.md)
+- [Developer Guide](./docs/development/DEVELOPER.md)
 - [Feature Implementation Template](./docs/feature-template.md)
-- [API Documentation](./docs/api.md)
+- [Authentication](./docs/authentication.md)
+- [Cloudflare AutoRAG](./docs/cloudflare-autorag.md)

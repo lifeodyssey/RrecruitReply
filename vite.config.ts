@@ -68,7 +68,7 @@ export default defineConfig({
     // Use jsdom for browser environment simulation
     environment: 'jsdom',
     // Setup files run before each test file
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./vitest.setup.ts'],
     // Include CSS processing in tests
     css: true,
     // Configuring coverage
@@ -79,14 +79,28 @@ export default defineConfig({
         ...(configDefaults.coverage.exclude || []),
         'src/test/**',
         '**/*.d.ts',
+        '**/*.config.{js,ts}',
+        '**/mocks/**'
       ],
     },
-    // Test matching patterns
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    // Test matching patterns with expanded patterns from vitest.config.ts
+    include: [
+      'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'src/**/__tests__/**/*.{ts,tsx}'
+    ],
     // Test exclusions
     exclude: ['node_modules', 'dist', '.next', 'coverage'],
     // Mocking behavior
     mockReset: true,
+    // Added from vitest.config.ts
+    deps: {
+      inline: ['msw']
+    },
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost:3000'
+      }
+    }
   },
 
   // Environment variables
