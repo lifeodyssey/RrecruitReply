@@ -1,15 +1,11 @@
-import nextPlugin from "@next/eslint-plugin-next";
 import { FlatCompat } from "@eslint/eslintrc";
-import js from "@eslint/js";
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
-import importPlugin from 'eslint-plugin-import'; // Added import plugin
-import jestPlugin from 'eslint-plugin-jest'; // Added jest plugin
-import vitestPlugin from 'eslint-plugin-vitest'; // Added vitest plugin
+import jestPlugin from 'eslint-plugin-jest';
+import vitestPlugin from 'eslint-plugin-vitest';
 import { fileURLToPath } from "url";
 import path from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Handle project references for TypeScript
@@ -17,10 +13,6 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
   recommendedConfig: {},
 });
-
-const restrictedImports = {
-  // Add any restricted imports here
-};
 
 const eslintConfig = [
   {
@@ -54,12 +46,16 @@ const eslintConfig = [
       '@typescript-eslint': typescriptPlugin,
     },
     rules: {
-      // Merged and disabled rules from .eslintrc.js
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/naming-convention': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
-      
+      // TypeScript rules
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
+      '@typescript-eslint/naming-convention': ['error', {
+        'selector': 'interface',
+        'format': ['PascalCase'],
+        'prefix': ['I']
+      }],
+      '@typescript-eslint/consistent-type-imports': ['error', { 'prefer': 'type-imports' }],
+
       // Keep important TypeScript rules
       '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
       '@typescript-eslint/explicit-module-boundary-types': 'warn',
@@ -122,7 +118,7 @@ const eslintConfig = [
       'import/order': 'off',
       'no-console': 'off',
       'no-useless-constructor': 'off',
-      
+
       // Keep other important clean code rules
       'prefer-const': 'error',
       'no-var': 'error',
@@ -134,7 +130,7 @@ const eslintConfig = [
       'arrow-body-style': ['error', 'as-needed'],
       'eqeqeq': ['error', 'always'],
       'curly': ['error', 'all'],
-      
+
       // Sort imports but with relaxed rules
       'sort-imports': [
         'error',
