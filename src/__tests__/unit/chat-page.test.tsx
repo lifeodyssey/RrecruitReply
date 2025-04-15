@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -38,43 +38,59 @@ describe('ChatPage', () => {
   it('allows sending a message and displays the response', async () => {
     const user = userEvent.setup();
 
-    render(<ChatPage />);
+    await act(async () => {
+      render(<ChatPage />);
+    });
 
     // Type a message
     const input = screen.getByPlaceholderText('Type your message here...');
-    await user.type(input, 'What are the benefits?');
+    await act(async () => {
+      await user.type(input, 'What are the benefits?');
+    });
 
     // Send the message
     const sendButton = screen.getByRole('button', { name: 'Send' });
-    await user.click(sendButton);
+    await act(async () => {
+      await user.click(sendButton);
+    });
 
     // Check if the user message is displayed
     expect(screen.getAllByText('What are the benefits?')[0]).toBeInTheDocument();
 
     // Wait for the response (skip checking for loading indicator as it might be too fast)
-    await waitFor(() => {
-      // Use getAllByText since there might be multiple elements with the same text
-      expect(screen.getAllByText('This is a sample answer to your query.')[0]).toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        // Use getAllByText since there might be multiple elements with the same text
+        expect(screen.getAllByText('This is a sample answer to your query.')[0]).toBeInTheDocument();
+      });
     });
   });
 
   it('displays sources in the response', async () => {
     const user = userEvent.setup();
 
-    render(<ChatPage />);
+    await act(async () => {
+      render(<ChatPage />);
+    });
 
     // Type a message
     const input = screen.getByPlaceholderText('Type your message here...');
-    await user.type(input, 'What are the benefits?');
+    await act(async () => {
+      await user.type(input, 'What are the benefits?');
+    });
 
     // Send the message
     const sendButton = screen.getByRole('button', { name: 'Send' });
-    await user.click(sendButton);
+    await act(async () => {
+      await user.click(sendButton);
+    });
 
     // Wait for the response
-    await waitFor(() => {
-      // Use getAllByText since there might be multiple elements with the same text
-      expect(screen.getAllByText('This is a sample answer to your query.')[0]).toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        // Use getAllByText since there might be multiple elements with the same text
+        expect(screen.getAllByText('This is a sample answer to your query.')[0]).toBeInTheDocument();
+      });
     });
 
     // Check if the sources are displayed
@@ -96,22 +112,30 @@ describe('ChatPage', () => {
 
     const user = userEvent.setup();
 
-    render(<ChatPage />);
+    await act(async () => {
+      render(<ChatPage />);
+    });
 
     // Type a message
     const input = screen.getByPlaceholderText('Type your message here...');
-    await user.type(input, 'What are the benefits?');
+    await act(async () => {
+      await user.type(input, 'What are the benefits?');
+    });
 
     // Send the message
     const sendButton = screen.getByRole('button', { name: 'Send' });
-    await user.click(sendButton);
+    await act(async () => {
+      await user.click(sendButton);
+    });
 
     // Instead of looking for a specific error message text,
     // Wait for the error handling to complete without checking the exact message
-    await waitFor(() => {
-      // Check for any message from the assistant after our user message
-      // This is sufficient to verify that error handling worked
-      expect(screen.getAllByText('What are the benefits?').length).toBeGreaterThan(0);
+    await act(async () => {
+      await waitFor(() => {
+        // Check for any message from the assistant after our user message
+        // This is sufficient to verify that error handling worked
+        expect(screen.getAllByText('What are the benefits?').length).toBeGreaterThan(0);
+      });
     });
 
     // Test passes if there's no uncaught exceptions
@@ -124,23 +148,33 @@ describe('ChatPage', () => {
     const originalConfirm = window.confirm;
     window.confirm = vi.fn(() => true);
 
-    render(<ChatPage />);
+    await act(async () => {
+      render(<ChatPage />);
+    });
 
     // Type and send a message
     const input = screen.getByPlaceholderText('Type your message here...');
-    await user.type(input, 'What are the benefits?');
+    await act(async () => {
+      await user.type(input, 'What are the benefits?');
+    });
 
     const sendButton = screen.getByRole('button', { name: 'Send' });
-    await user.click(sendButton);
+    await act(async () => {
+      await user.click(sendButton);
+    });
 
     // Wait for the response
-    await waitFor(() => {
-      expect(screen.queryByText('Thinking...')).not.toBeInTheDocument();
+    await act(async () => {
+      await waitFor(() => {
+        expect(screen.queryByText('Thinking...')).not.toBeInTheDocument();
+      });
     });
 
     // Click the clear button
     const clearButton = screen.getByRole('button', { name: 'Clear Conversation' });
-    await user.click(clearButton);
+    await act(async () => {
+      await user.click(clearButton);
+    });
 
     // Restore the original confirm function
     window.confirm = originalConfirm;
