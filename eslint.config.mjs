@@ -5,6 +5,7 @@ import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import'; // Added import plugin
 import jestPlugin from 'eslint-plugin-jest'; // Added jest plugin
+import vitestPlugin from 'eslint-plugin-vitest'; // Added vitest plugin
 import { fileURLToPath } from "url";
 import path from 'path';
 
@@ -106,7 +107,7 @@ const eslintConfig = [
     files: ['**/__tests__/**/*.ts', '**/__tests__/**/*.tsx', '**/*.test.ts', '**/*.test.tsx'],
     plugins: {
       'jest': jestPlugin,
-      // Vitest plugin is temporarily disabled due to dependency issues
+      'vitest': vitestPlugin,
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
@@ -116,11 +117,8 @@ const eslintConfig = [
       'jest/no-identical-title': 'error',
       'jest/no-focused-tests': 'error',
       'jest/no-disabled-tests': process.env.CI ? 'error' : 'warn',
-      // Vitest rules are temporarily disabled due to dependency issues
-      // 'vitest/expect-expect': 'error',
-      // 'vitest/no-identical-title': 'error',
-      // 'vitest/no-focused-tests': 'error',
-      // 'vitest/no-disabled-tests': process.env.CI ? 'error' : 'warn',
+      // Use recommended rules from vitest plugin
+      ...vitestPlugin.configs.recommended.rules,
     },
   },
   // Clean code and best practices
