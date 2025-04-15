@@ -58,7 +58,7 @@ export default defineConfig({
   // CSS Processing
   css: {
     // PostCSS configuration inline
-    postcss: './postcss.config.js',
+    postcss: './postcss.config.mjs',
   },
 
   // Vitest configuration
