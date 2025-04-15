@@ -1,61 +1,181 @@
-# RecruitReply（リクルートリプライ）
+# Recruit-Reply
 
-## 概要
+A RAG (Retrieval-Augmented Generation) system for recruitment agents to reduce time spent answering repetitive questions.
 
-RecruitReplyは、採用担当者の業務効率を向上させるためのAIアシスタントシステムです。よくある質問に対して、蓄積された知識から迅速かつ正確な回答を提供します。
+## Overview
 
-## 主な特徴
+Recruit-Reply uses the Cloudflare Auto RAG system to provide instant answers to common recruitment questions, saving time and improving consistency for recruitment agents.
 
-- **AIを活用した回答生成**: 採用関連の質問に対して、AIが適切な回答を生成します
-- **簡単な操作**: シンプルなチャットインターフェースで、誰でも簡単に利用できます
-- **知識ベースの活用**: 採用関連の文書から情報を抽出し、回答の質を向上させます
-- **時間の節約**: 繰り返し発生する質問への対応時間を大幅に削減します
-- **一貫性のある回答**: すべての採用担当者が同じ質の回答を提供できます
+## Features
 
-## 利用方法
+- **Automated Question Answering**: Leverages RAG to answer common recruitment questions
+- **Document Management**: Upload and manage recruitment-related documents
+- **Chat Interface**: Interactive chat interface for recruitment agents
+- **Admin Dashboard**: Manage content, monitor usage, and train the system
 
-### 採用担当者向け
+## Technology Stack
 
-1. ブラウザでRecruitReplyにアクセスします
-2. 人間確認（CAPTCHA）を完了します
-3. チャットインターフェースで質問を入力します
-4. AIが回答を生成するまで少々お待ちください
-5. 必要に応じて、フォローアップの質問をすることもできます
+- **Frontend**: Vite, React, TypeScript, Tailwind CSS
+- **Backend**: Express server with Vite middlewares
+- **Testing**: Vitest, Testing Library
+- **RAG System**: Cloudflare Auto RAG
+- **Storage**: Cloudflare R2
+- **Deployment**: Cloudflare Pages
+- **Infrastructure**: Terraform, Terragrunt
 
-### 管理者向け
+## Modern Development Stack
 
-1. 管理者ログイン画面からアクセスします
-2. 認証情報を入力してログインします
-3. 文書管理画面から新しい採用関連文書をアップロードできます
-4. システムの利用状況や効果を確認できます
+This project uses a modern, zero-config development stack:
 
-## よくある質問
+- **Vite**: Fast, modern build tool with minimal configuration
+- **Vitest**: Test runner compatible with Vite for seamless testing
+- **React Router**: Routing for single page applications
+- **MSW**: API mocking for tests and development
 
-**Q: このシステムは何ができますか？**
-A: 採用プロセスに関する質問に対して、AIを活用して迅速かつ正確な回答を提供します。
+## Getting Started
 
-**Q: 個人情報は安全ですか？**
-A: はい。すべてのデータは暗号化され、適切なセキュリティ対策が施されています。個人情報の取り扱いには十分注意しています。
+### Prerequisites
 
-**Q: システムが回答できない質問はどうなりますか？**
-A: システムが適切な回答を生成できない場合は、その旨を通知し、人間の採用担当者に相談することをお勧めします。
+- Node.js 22.x or later
+- npm 10.x or later
+- A Cloudflare account with Auto RAG enabled
 
-**Q: 回答の精度はどのくらいですか？**
-A: システムは常に学習・改善されており、高い精度で回答を提供します。ただし、複雑な質問や特殊なケースでは、人間の判断が必要な場合もあります。
+### Installation
 
-## サポート
+1. Clone the repository:
 
-システムの利用方法やトラブルシューティングについては、管理者にお問い合わせください。
+```bash
+git clone https://github.com/your-org/recruit-reply.git
+cd recruit-reply
+```
 
-## 今後の展開
+2. Install dependencies:
 
-- より多様な質問への対応
-- 多言語サポートの拡充
-- モバイルアプリの開発
-- 採用プロセス全体の自動化機能の追加
+```bash
+npm install
+```
 
----
+3. Create a `.env` file based on `.env.example`:
 
-RecruitReplyは、採用担当者の業務効率化と候補者体験の向上を目指して開発されました。
+```bash
+cp .env.example .env
+```
 
-> **Note for Developers**: Technical documentation is available in [DEVELOPER.md](DEVELOPER.md). English documentation is available [here](docs/README_EN.md).
+4. Set up your Cloudflare credentials and other environment variables in the `.env` file.
+
+5. Start the development server:
+
+```bash
+npm run dev
+```
+
+### Development Workflow
+
+1. Create a new branch for your feature or bug fix:
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. Follow the [Feature Implementation Template](./docs/feature-template.md)
+
+3. Ensure your code passes all checks:
+
+```bash
+# Run lint
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Type check
+npm run type-check
+
+# Run tests
+npm test
+```
+
+4. Submit a pull request for review
+
+## Testing with Vitest
+
+The project uses Vitest for testing, providing fast test execution with a Jest-compatible API:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run specific test types
+npm run test:unit
+npm run test:integration
+npm run test:e2e
+```
+
+## Building and Deployment
+
+Build the application:
+
+```bash
+npm run build
+```
+
+Preview the production build locally:
+
+```bash
+npm run preview
+```
+
+The application is automatically deployed to Cloudflare Pages when changes are pushed to the main branch.
+
+## Project Structure
+
+```
+recruit-reply/
+├── src/                  # Source code
+│   ├── components/       # Reusable UI components
+│   ├── routes/           # Route components
+│   ├── domain/           # Domain models and business logic
+│   ├── application/      # Application services
+│   ├── infrastructure/   # External services, API clients, etc.
+│   ├── lib/              # Utility functions and helpers
+│   ├── hooks/            # Custom React hooks
+│   ├── features/         # Feature-specific code
+│   ├── types/            # TypeScript type definitions
+│   └── test/             # Test utilities and configs
+├── public/               # Static assets
+├── index.html            # HTML entry point
+├── vite.config.ts        # Vite and Vitest configuration
+└── .eslintrc.json        # ESLint configuration
+```
+
+## Configuration
+
+The project uses Vite's built-in configuration system, eliminating the need for numerous config files:
+
+- **vite.config.ts**: Single configuration file for both build and test
+- **tsconfig.json**: TypeScript configuration
+- **.eslintrc.json**: ESLint rules
+
+## Contributing
+
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
+
+## Documentation
+
+- [Architecture Documentation](./ARCHITECTURE.md)
+- [Developer Guide](./DEVELOPER.md)
+- [Feature Implementation Template](./docs/feature-template.md)
+- [API Documentation](./docs/api.md)
