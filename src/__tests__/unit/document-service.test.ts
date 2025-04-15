@@ -1,6 +1,7 @@
-import { QueryRequestDto } from '@/application/dtos/document-dtos';
 import { DocumentService } from '@/application/services/document-service';
 import { MockDocumentRepository } from '@/infrastructure/mocks/mock-document-repository';
+
+import type { IQueryRequestDto } from '@/application/dtos/document-dtos';
 
 describe('DocumentService', () => {
   let documentService: DocumentService;
@@ -13,9 +14,9 @@ describe('DocumentService', () => {
 
   describe('query', () => {
     it('should query the repository and return the result', async () => {
-      const queryDto: QueryRequestDto = {
+      const queryDto: IQueryRequestDto = {
         query: 'What are the benefits?',
-        conversationId: 'conv-123'
+        conversationId: 'conv-123',
       };
 
       const result = await documentService.query(queryDto);
@@ -26,7 +27,7 @@ describe('DocumentService', () => {
     });
 
     it('should throw an error if query is missing', async () => {
-      const queryDto = {} as QueryRequestDto;
+      const queryDto = {} as IQueryRequestDto;
 
       await expect(documentService.query(queryDto)).rejects.toThrow('Query is required');
     });
@@ -60,16 +61,18 @@ describe('DocumentService', () => {
       const title = 'Test Document';
       const source = 'Test Source';
 
-      await expect(documentService.uploadDocument(null as unknown as File, title, source))
-        .rejects.toThrow('File is required');
+      await expect(
+        documentService.uploadDocument(null as unknown as File, title, source)
+      ).rejects.toThrow('File is required');
     });
 
     it('should throw an error if title is missing', async () => {
       const file = new File(['test content'], 'test.txt', { type: 'text/plain' });
       const source = 'Test Source';
 
-      await expect(documentService.uploadDocument(file, '', source))
-        .rejects.toThrow('Title is required');
+      await expect(documentService.uploadDocument(file, '', source)).rejects.toThrow(
+        'Title is required'
+      );
     });
   });
 
@@ -91,15 +94,16 @@ describe('DocumentService', () => {
       const documentId = 'non-existent-doc';
 
       // Set up the mock to throw an error for this document ID
-      jest.spyOn(mockRepository, 'deleteDocument').mockImplementation((id) => {
+      vi.spyOn(mockRepository, 'deleteDocument').mockImplementation((id) => {
         if (id === documentId) {
           throw new Error(`Document with ID ${id} not found`);
         }
         return Promise.resolve({ success: true, documentId: id });
       });
 
-      await expect(documentService.deleteDocument(documentId))
-        .rejects.toThrow(`Document with ID ${documentId} not found`);
+      await expect(documentService.deleteDocument(documentId)).rejects.toThrow(
+        `Document with ID ${documentId} not found`
+      );
     });
   });
 });

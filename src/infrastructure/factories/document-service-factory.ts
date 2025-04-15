@@ -2,13 +2,14 @@
  * Factory for creating DocumentService instances
  */
 import { DocumentService } from '@/application/services/document-service';
-import { DocumentRepository } from '@/domain/repositories/document-repository';
 import { AutoRAGRepository } from '@/infrastructure/repositories/autorag-repository';
+
+import type { IDocumentRepository } from '@/domain/repositories/document-repository';
 
 /**
  * Factory configuration for DocumentService
  */
-interface DocumentServiceConfig {
+interface IDocumentServiceConfig {
   baseUrl: string;
   apiKey?: string;
 }
@@ -17,29 +18,29 @@ interface DocumentServiceConfig {
  * Factory for creating DocumentService instances
  */
 export class DocumentServiceFactory {
-  private static config: DocumentServiceConfig = {
+  private static config: IDocumentServiceConfig = {
     baseUrl: process.env.AUTORAG_API_URL || 'https://api.autorag.workers.dev',
-    apiKey: process.env.AUTORAG_API_KEY
+    apiKey: process.env.AUTORAG_API_KEY,
   };
 
   /**
    * Configure the factory with custom settings
-   * 
+   *
    * @param config - Custom configuration settings
    */
-  public static configure(config: Partial<DocumentServiceConfig>): void {
+  public static configure(config: Partial<IDocumentServiceConfig>): void {
     DocumentServiceFactory.config = {
       ...DocumentServiceFactory.config,
-      ...config
+      ...config,
     };
   }
 
   /**
    * Create a new DocumentRepository instance
-   * 
+   *
    * @returns A configured DocumentRepository instance
    */
-  public static createRepository(): DocumentRepository {
+  public static createRepository(): IDocumentRepository {
     return new AutoRAGRepository(
       DocumentServiceFactory.config.baseUrl,
       DocumentServiceFactory.config.apiKey
@@ -48,7 +49,7 @@ export class DocumentServiceFactory {
 
   /**
    * Create a new DocumentService instance
-   * 
+   *
    * @returns A configured DocumentService instance
    */
   public static createService(): DocumentService {
@@ -59,7 +60,7 @@ export class DocumentServiceFactory {
 
 /**
  * Get a configured DocumentService instance
- * 
+ *
  * @returns A configured DocumentService instance
  */
 export function getDocumentService(): DocumentService {

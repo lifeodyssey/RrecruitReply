@@ -20,7 +20,11 @@ export interface MockResponse {
 // Removed unused interface
 
 export type ResponseTransformer = (ctx: ResponseContext) => MockResponse;
-export type ResponseResolver = (req: unknown, res: ResponseTransformer, ctx: ResponseContext) => MockResponse;
+export type ResponseResolver = (
+  req: unknown,
+  res: ResponseTransformer,
+  ctx: ResponseContext
+) => MockResponse;
 export interface RestHandler {
   type: string;
   method: string;
@@ -35,28 +39,28 @@ export const rest = {
     type: 'rest',
     method: 'GET',
     url,
-    handler
+    handler,
   }),
   post: (url: string, handler: ResponseResolver): RestHandler => ({
     type: 'rest',
     method: 'POST',
     url,
-    handler
+    handler,
   }),
   delete: (url: string, handler: ResponseResolver): RestHandler => ({
     type: 'rest',
     method: 'DELETE',
     url,
-    handler
-  })
+    handler,
+  }),
 };
 
 interface MockServer {
   handlers: AnyHandler[];
-  listen: jest.Mock;
-  close: jest.Mock;
-  resetHandlers: jest.Mock;
-  use: jest.Mock;
+  listen: Mock;
+  close: Mock;
+  resetHandlers: Mock;
+  use: Mock;
 }
 
 interface FetchMockResponse {
@@ -69,7 +73,11 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface Global {
-      registerFetchMock: (url: string, method: string, handler: () => Promise<FetchMockResponse>) => void;
+      registerFetchMock: (
+        url: string,
+        method: string,
+        handler: () => Promise<FetchMockResponse>
+      ) => void;
     }
   }
 }
@@ -77,24 +85,22 @@ declare global {
 export const setupServer = (...handlers: AnyHandler[]): MockServer => {
   const server = {
     handlers,
-    listen: jest.fn(),
-    close: jest.fn(),
-    resetHandlers: jest.fn(),
-    use: jest.fn((handler: AnyHandler) => {
+    listen: vi.fn(),
+    close: vi.fn(),
+    resetHandlers: vi.fn(),
+    use: vi.fn((handler: AnyHandler) => {
       // When server.use is called, register a fetch mock
       if (handler && typeof handler === 'object' && 'type' in handler && handler.type === 'rest') {
         const { method, url, handler: responseHandler } = handler as RestHandler;
         const mockCtx = {
           status: (code: number): StatusContext => ({
-            json: (data: unknown): MockResponse => ({ status: code, data })
+            json: (data: unknown): MockResponse => ({ status: code, data }),
           }),
-          json: (data: unknown): MockResponse => ({ status: 200, data })
+          json: (data: unknown): MockResponse => ({ status: 200, data }),
         } as ResponseContext;
 
         // Create a mock response transformer
-        const mockRes: ResponseTransformer = (_ctx: ResponseContext) => {
-          return { status: 200, data: {} };
-        };
+        const mockRes: ResponseTransformer = (_ctx: ResponseContext) => ({ status: 200, data: {} });
 
         // Register a fetch mock for this handler
         global.registerFetchMock(url, method, () => {
@@ -102,12 +108,14 @@ export const setupServer = (...handlers: AnyHandler[]): MockServer => {
           const response = responseHandler({}, mockRes, mockCtx);
 
           // Return a proper Response object
-          return Promise.resolve(new Response(JSON.stringify(response.data), {
-            status: response.status
-          }));
+          return Promise.resolve(
+            new Response(JSON.stringify(response.data), {
+              status: response.status,
+            })
+          );
         });
       }
-    })
+    }),
   };
   return server;
 };

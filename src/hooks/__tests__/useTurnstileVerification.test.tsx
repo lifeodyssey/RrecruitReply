@@ -1,4 +1,5 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useTurnstileVerification } from '../useTurnstileVerification';
 
@@ -7,33 +8,35 @@ const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
 
   return {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
       store[key] = value;
     }),
-    removeItem: jest.fn((key: string) => {
+    removeItem: vi.fn((key: string) => {
       delete store[key];
     }),
-    clear: jest.fn(() => {
+    clear: vi.fn(() => {
       store = {};
     }),
   };
 })();
 
-// Mock fetch
-global.fetch = jest.fn();
-
 describe('useTurnstileVerification', () => {
   beforeEach(() => {
     // Setup mocks
     Object.defineProperty(window, 'localStorage', { value: mockLocalStorage });
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockLocalStorage.clear();
 
-    // Default fetch mock implementation
-    (global.fetch as jest.Mock).mockResolvedValue({
-      json: jest.fn().mockResolvedValue({ success: true }),
-    });
+    // Setup fetch mock for this specific test
+    global.fetch = vi.fn().mockImplementation(
+      async () =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => Promise.resolve({ success: true }),
+        }) as unknown as Response
+    );
   });
 
   it('initializes with default state', () => {
@@ -91,9 +94,14 @@ describe('useTurnstileVerification', () => {
 
   it('handles verification failure', async () => {
     // Mock fetch to return failure
-    (global.fetch as jest.Mock).mockResolvedValue({
-      json: jest.fn().mockResolvedValue({ success: false }),
-    });
+    vi.mocked(global.fetch).mockImplementation(
+      async () =>
+        Promise.resolve({
+          ok: false,
+          status: 400,
+          json: async () => Promise.resolve({ success: false }),
+        }) as unknown as Response
+    );
 
     const { result } = renderHook(() => useTurnstileVerification());
 
@@ -123,7 +131,7 @@ describe('useTurnstileVerification', () => {
 
     // Reset verification
     act(() => {
-      result.current.resetVerification();
+      result.current.reset();
     });
 
     // State should be reset

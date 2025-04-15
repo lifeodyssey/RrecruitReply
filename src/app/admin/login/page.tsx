@@ -3,10 +3,17 @@
 import { Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import React, { useState, Suspense, type ReactElement } from "react";
+import React, { type ReactElement, Suspense, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -14,18 +21,22 @@ import { Label } from '@/components/ui/label';
  * Component that uses useSearchParams() hook
  * This must be wrapped in a Suspense boundary
  */
-function SearchParamsProvider({ children }: { children: (callbackUrl: string) => React.ReactNode }): ReactElement {
+const SearchParamsProvider = ({
+  children,
+}: {
+  children: (callbackUrl: string) => React.ReactNode;
+}): ReactElement => {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
 
   return <>{children(callbackUrl)}</>;
-}
+};
 
 /**
  * Login form component that receives the callbackUrl as a prop
  * instead of using useSearchParams directly
  */
-function LoginForm({ callbackUrl }: { callbackUrl: string }): ReactElement {
+const LoginForm = ({ callbackUrl }: { callbackUrl: string }): ReactElement => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -68,9 +79,7 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }): ReactElement {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>
-          <CardDescription>
-            Enter your email to sign in to the admin dashboard
-          </CardDescription>
+          <CardDescription>Enter your email to sign in to the admin dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,9 +110,11 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }): ReactElement {
         </CardContent>
         <CardFooter>
           {message && (
-            <p className={`text-sm w-full text-center ${
-              message.type === 'error' ? 'text-destructive' : 'text-green-600'
-            }`}>
+            <p
+              className={`text-sm w-full text-center ${
+                message.type === 'error' ? 'text-destructive' : 'text-green-600'
+              }`}
+            >
               {message.text}
             </p>
           )}
@@ -111,28 +122,26 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }): ReactElement {
       </Card>
     </div>
   );
-}
+};
 
 /**
  * Login page wrapper component
  * Properly wraps components using useSearchParams in Suspense
  */
-function LoginPageContent(): ReactElement {
-  return (
-    <SearchParamsProvider>
-      {(callbackUrl) => <LoginForm callbackUrl={callbackUrl} />}
-    </SearchParamsProvider>
-  );
-}
+const LoginPageContent = (): ReactElement => (
+  <SearchParamsProvider>
+    {(callbackUrl) => <LoginForm callbackUrl={callbackUrl} />}
+  </SearchParamsProvider>
+);
 
 /**
  * Admin login page
  *
  * This page provides a form for administrators to sign in using email authentication.
  */
-export default function AdminLoginPage(): ReactElement {
-  return (
-    <Suspense fallback={
+const AdminLoginPage = (): ReactElement => (
+  <Suspense
+    fallback={
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -140,8 +149,10 @@ export default function AdminLoginPage(): ReactElement {
           </CardHeader>
         </Card>
       </div>
-    }>
-      <LoginPageContent />
-    </Suspense>
-  );
-}
+    }
+  >
+    <LoginPageContent />
+  </Suspense>
+);
+
+export default AdminLoginPage;

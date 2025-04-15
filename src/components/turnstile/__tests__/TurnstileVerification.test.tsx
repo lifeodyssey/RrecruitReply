@@ -5,10 +5,10 @@ import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
 import { TurnstileVerification } from '../TurnstileVerification';
 
 // Mock the useTurnstileVerification hook
-jest.mock('@/hooks/useTurnstileVerification');
+vi.mock('@/hooks/useTurnstileVerification');
 
 // Mock the TurnstileWidget component
-jest.mock('../TurnstileWidget', () => ({
+vi.mock('../TurnstileWidget', () => ({
   TurnstileWidget: ({ onVerify }: { onVerify: (token: string) => void }) => (
     <button data-testid="mock-turnstile-widget" onClick={() => onVerify('mock-token')}>
       Mock Turnstile Widget
@@ -17,7 +17,7 @@ jest.mock('../TurnstileWidget', () => ({
 }));
 
 // Mock environment variables
-jest.mock('next/config', () => () => ({
+vi.mock('next/config', () => () => ({
   publicRuntimeConfig: {
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'test-site-key',
   },
@@ -27,17 +27,17 @@ jest.mock('next/config', () => () => ({
 process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = 'test-site-key';
 
 describe('TurnstileVerification', () => {
-  const mockOnVerificationComplete = jest.fn();
+  const mockOnVerificationComplete = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Default mock implementation
-    (useTurnstileVerification as jest.Mock).mockReturnValue({
+    (useTurnstileVerification as Mock).mockReturnValue({
       isVerified: false,
       isLoading: false,
-      verifyToken: jest.fn().mockResolvedValue(true),
-      resetVerification: jest.fn(),
+      verifyToken: vi.fn().mockResolvedValue(true),
+      resetVerification: vi.fn(),
     });
   });
 
@@ -45,7 +45,9 @@ describe('TurnstileVerification', () => {
     render(<TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />);
 
     expect(screen.getByText('Human Verification')).toBeInTheDocument();
-    expect(screen.getByText('Please complete the verification below to continue using the chat.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Please complete the verification below to continue using the chat.')
+    ).toBeInTheDocument();
 
     // Since we're mocking the environment variable, we should see the widget
     // instead of the error message
@@ -54,11 +56,11 @@ describe('TurnstileVerification', () => {
   });
 
   it('calls onVerificationComplete when already verified', () => {
-    (useTurnstileVerification as jest.Mock).mockReturnValue({
+    (useTurnstileVerification as Mock).mockReturnValue({
       isVerified: true,
       isLoading: false,
-      verifyToken: jest.fn(),
-      resetVerification: jest.fn(),
+      verifyToken: vi.fn(),
+      resetVerification: vi.fn(),
     });
 
     render(<TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />);
@@ -67,11 +69,11 @@ describe('TurnstileVerification', () => {
   });
 
   it('shows loading state when isLoading is true', () => {
-    (useTurnstileVerification as jest.Mock).mockReturnValue({
+    (useTurnstileVerification as Mock).mockReturnValue({
       isVerified: false,
       isLoading: true,
-      verifyToken: jest.fn(),
-      resetVerification: jest.fn(),
+      verifyToken: vi.fn(),
+      resetVerification: vi.fn(),
     });
 
     render(<TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />);
@@ -81,26 +83,28 @@ describe('TurnstileVerification', () => {
 
   it('handles verification success', async () => {
     // Mock the verification hook to return true after verification
-    const mockVerifyToken = jest.fn().mockImplementation(() => {
+    const mockVerifyToken = vi.fn().mockImplementation(() => {
       // Update the mock to return true for isVerified after verification
-      (useTurnstileVerification as jest.Mock).mockReturnValue({
+      (useTurnstileVerification as Mock).mockReturnValue({
         isVerified: true,
         isLoading: false,
         verifyToken: mockVerifyToken,
-        resetVerification: jest.fn(),
+        resetVerification: vi.fn(),
       });
       return Promise.resolve(true);
     });
 
     // Initial state: not verified
-    (useTurnstileVerification as jest.Mock).mockReturnValue({
+    (useTurnstileVerification as Mock).mockReturnValue({
       isVerified: false,
       isLoading: false,
       verifyToken: mockVerifyToken,
-      resetVerification: jest.fn(),
+      resetVerification: vi.fn(),
     });
 
-    const { rerender } = render(<TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />);
+    const { rerender } = render(
+      <TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />
+    );
 
     // Simulate verification
     await mockVerifyToken('mock-token');
@@ -113,16 +117,18 @@ describe('TurnstileVerification', () => {
   });
 
   it('handles verification failure', async () => {
-    const mockVerifyToken = jest.fn().mockResolvedValue(false);
+    const mockVerifyToken = vi.fn().mockResolvedValue(false);
 
-    (useTurnstileVerification as jest.Mock).mockReturnValue({
+    (useTurnstileVerification as Mock).mockReturnValue({
       isVerified: false,
       isLoading: false,
       verifyToken: mockVerifyToken,
-      resetVerification: jest.fn(),
+      resetVerification: vi.fn(),
     });
 
-    const { rerender } = render(<TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />);
+    const { rerender } = render(
+      <TurnstileVerification onVerificationComplete={mockOnVerificationComplete} />
+    );
 
     // Simulate verification failure by calling the hook's verifyToken function
     await mockVerifyToken('mock-token');

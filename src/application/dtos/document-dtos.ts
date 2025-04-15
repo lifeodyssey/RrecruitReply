@@ -3,44 +3,44 @@
  */
 
 // Request DTOs
-export interface QueryRequestDto {
+export interface IQueryRequestDto {
   query: string;
   conversationId?: string;
 }
 
 // Response DTOs with proper interfaces instead of type aliases
-export interface SourceDto {
+export interface ISourceDto {
   name: string;
   url?: string;
 }
 
-export interface DocumentDto {
+export interface IDocumentDto {
   id: string;
   title: string;
   filename: string;
   uploadDate: Date;
-  source?: SourceDto;
+  source?: ISourceDto;
 }
 
-export interface QueryResponseDto {
+export interface IQueryResponseDto {
   answer: string;
-  sources: SourceDto[];
+  sources: ISourceDto[];
 }
 
-export interface UploadResponseDto {
+export interface IUploadResponseDto {
   success: boolean;
   documentId: string;
   message: string;
 }
 
-export interface DeleteResponseDto {
+export interface IDeleteResponseDto {
   success: boolean;
   documentId: string;
   message: string;
 }
 
 // Error DTO
-export interface ErrorResponseDto {
+export interface IErrorResponseDto {
   error: string;
   status: number;
 }

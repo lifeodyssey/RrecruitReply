@@ -12,7 +12,7 @@
 export class ApplicationError extends Error {
   /**
    * Creates a new ApplicationError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */
@@ -28,7 +28,7 @@ export class ApplicationError extends Error {
 export class ValidationError extends ApplicationError {
   /**
    * Creates a new ValidationError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */
@@ -44,7 +44,7 @@ export class ValidationError extends ApplicationError {
 export class NotFoundError extends ApplicationError {
   /**
    * Creates a new NotFoundError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */
@@ -60,7 +60,7 @@ export class NotFoundError extends ApplicationError {
 export class UnauthorizedError extends ApplicationError {
   /**
    * Creates a new UnauthorizedError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */
@@ -76,7 +76,7 @@ export class UnauthorizedError extends ApplicationError {
 export class ForbiddenError extends ApplicationError {
   /**
    * Creates a new ForbiddenError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */
@@ -92,7 +92,7 @@ export class ForbiddenError extends ApplicationError {
 export class ConflictError extends ApplicationError {
   /**
    * Creates a new ConflictError
-   * 
+   *
    * @param message - Error message
    * @param options - Error options
    */

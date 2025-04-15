@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { ReactElement } from "react";
+import React, { type ReactElement } from 'react';
 
-import { ChatInput } from "@/components/chat/chat-input";
-import { MessageList } from "@/components/chat/message-list";
-import { MainLayout } from "@/components/layout/main-layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useChatMessages } from "@/hooks/useChatMessages";
+import { ChatInput } from '@/components/chat/chat-input';
+import { MessageList } from '@/components/chat/message-list';
+import { MainLayout } from '@/components/layout/main-layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useChatMessages } from '@/hooks/useChatMessages';
 
-export default function ChatPage(): ReactElement {
+const ChatPage = (): ReactElement => {
   const { messages, isLoading, sendMessage, clearConversation } = useChatMessages();
 
   return (
@@ -41,4 +41,6 @@ export default function ChatPage(): ReactElement {
       </div>
     </MainLayout>
   );
-}
+};
+
+export default ChatPage;

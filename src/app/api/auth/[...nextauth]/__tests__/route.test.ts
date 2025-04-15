@@ -1,8 +1,8 @@
 // Import the handler directly to avoid initialization issues
 // We'll mock the actual implementation
-jest.mock('../route', () => ({
-  GET: jest.fn(),
-  POST: jest.fn(),
+vi.mock('../route', () => ({
+  GET: vi.fn(),
+  POST: vi.fn(),
 }));
 
 import { PrismaAdapter } from '@auth/prisma-adapter';
@@ -11,48 +11,37 @@ import EmailProvider from 'next-auth/providers/email';
 import { GET, POST } from '../route';
 
 // Mock prisma
-jest.mock('@/lib/prisma', () => ({
+vi.mock('@/lib/prisma', () => ({
   prisma: {},
 }));
 
 // Mock next-auth
-jest.mock('next-auth', () => {
-  const mockNextAuth = jest.fn().mockImplementation((_config) => {
+vi.mock('next-auth', () => ({
+  default: vi.fn().mockImplementation((_config) =>
     // Return an object with GET and POST handlers
-    return {
-      GET: jest.fn(),
-      POST: jest.fn(),
-    };
-  });
-
-  // Add properties to the mock
-  mockNextAuth.mockImplementation = jest.fn();
-  mockNextAuth.mockReset = jest.fn();
-
-  return mockNextAuth;
-});
-
-// Get the mocked NextAuth function
-const _NextAuth = jest.requireMock('next-auth');
+    ({
+      GET: vi.fn(),
+      POST: vi.fn(),
+    })
+  ),
+}));
 
 // Mock @auth/prisma-adapter
-jest.mock('@auth/prisma-adapter', () => ({
-  PrismaAdapter: jest.fn().mockReturnValue({ type: 'prisma-adapter' }),
+vi.mock('@auth/prisma-adapter', () => ({
+  PrismaAdapter: vi.fn().mockReturnValue({ type: 'prisma-adapter' }),
 }));
 
 // Mock next-auth/providers/email
-jest.mock('next-auth/providers/email', () => {
-  return jest.fn().mockImplementation((config) => {
-    return { type: 'email-provider', ...config };
-  });
-});
+vi.mock('next-auth/providers/email', () => ({
+  default: vi.fn().mockImplementation((config) => ({ type: 'email-provider', ...config })),
+}));
 
 // Mock environment variables
 const originalEnv = process.env;
 
 describe('NextAuth Configuration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock environment variables
     process.env = {
@@ -86,13 +75,8 @@ describe('NextAuth Configuration', () => {
     expect(typeof PrismaAdapter).toBe('function');
     expect(typeof EmailProvider).toBe('function');
 
-    // Mock the NextAuth configuration
-    const mockNextAuth = jest.requireMock('next-auth');
-    // Call the mock function directly to ensure it's been called
-    mockNextAuth();
-    // Now we can check if it's been called
-    expect(mockNextAuth).toHaveBeenCalled();
+    // Verify the NextAuth mock is set up correctly
+    const nextAuthModule = vi.mocked(require('next-auth').default);
+    expect(nextAuthModule).toBeDefined();
   });
-
-
 });

@@ -1,8 +1,13 @@
 /**
  * Mock implementation of DocumentRepository for testing
  */
-import { Document, QueryResult, UploadResult, DeleteResult } from '@/domain/models/document';
-import { DocumentRepository } from '@/domain/repositories/document-repository';
+import type {
+  IDeleteResult,
+  IDocument,
+  IQueryResult,
+  IUploadResult,
+} from '@/domain/models/document';
+import type { IDocumentRepository } from '@/domain/repositories/document-repository';
 
 // Helper function for deep cloning objects in environments without structuredClone
 function deepClone<T>(obj: T): T {
@@ -10,16 +15,16 @@ function deepClone<T>(obj: T): T {
 }
 
 // Default mock data in a separate constant for better maintainability
-export const DEFAULT_DOCUMENTS: Document[] = [
+export const DEFAULT_DOCUMENTS: IDocument[] = [
   {
     id: 'doc-1',
     title: 'Benefits Overview',
     filename: 'benefits-overview.pdf',
     source: {
       name: 'HR Department',
-      url: 'https://example.com/hr'
+      url: 'https://example.com/hr',
     },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   },
   {
     id: 'doc-2',
@@ -27,13 +32,13 @@ export const DEFAULT_DOCUMENTS: Document[] = [
     filename: 'recruitment-process.pdf',
     source: {
       name: 'HR Department',
-      url: 'https://example.com/hr'
+      url: 'https://example.com/hr',
     },
-    timestamp: Date.now()
-  }
+    timestamp: Date.now(),
+  },
 ];
 
-export const DEFAULT_QUERY_RESULT: QueryResult = {
+export const DEFAULT_QUERY_RESULT: IQueryResult = {
   answer: 'The company offers health insurance, 401k matching, and paid time off.',
   sources: [
     {
@@ -41,19 +46,19 @@ export const DEFAULT_QUERY_RESULT: QueryResult = {
       title: 'Benefits Overview',
       source: 'HR Department',
       content: 'Our company provides comprehensive health insurance...',
-      similarity: 0.92
-    }
-  ]
+      similarity: 0.92,
+    },
+  ],
 };
 
 /**
  * Implementation of DocumentRepository for testing purposes
  * Follows the repository pattern and provides methods for CRUD operations
  */
-export class MockDocumentRepository implements DocumentRepository {
+export class MockDocumentRepository implements IDocumentRepository {
   // Mock data state
-  private mockDocuments: Document[];
-  private mockQueryResult: QueryResult;
+  private mockDocuments: IDocument[];
+  private mockQueryResult: IQueryResult;
 
   /**
    * Create a new MockDocumentRepository with optional custom mock data
@@ -61,8 +66,8 @@ export class MockDocumentRepository implements DocumentRepository {
    * @param queryResult - Optional query result to return
    */
   constructor(
-    documents: Document[] = DEFAULT_DOCUMENTS,
-    queryResult: QueryResult = DEFAULT_QUERY_RESULT
+    documents: IDocument[] = DEFAULT_DOCUMENTS,
+    queryResult: IQueryResult = DEFAULT_QUERY_RESULT
   ) {
     this.mockDocuments = deepClone(documents); // Use deepClone for compatibility
     this.mockQueryResult = deepClone(queryResult);
@@ -71,17 +76,17 @@ export class MockDocumentRepository implements DocumentRepository {
   /**
    * Query the repository with a natural language query
    * @param _query - The query string (unused in mock implementation)
-   * @returns Promise<QueryResult> - The mocked query result
+   * @returns Promise<IQueryResult> - The mocked query result
    */
-  async query(_query: string): Promise<QueryResult> {
+  async query(_query: string): Promise<IQueryResult> {
     return deepClone(this.mockQueryResult);
   }
 
   /**
    * List all documents in the repository
-   * @returns Promise<Document[]> - A copy of all documents
+   * @returns Promise<IDocument[]> - A copy of all documents
    */
-  async listDocuments(): Promise<Document[]> {
+  async listDocuments(): Promise<IDocument[]> {
     return deepClone(this.mockDocuments);
   }
 
@@ -90,26 +95,28 @@ export class MockDocumentRepository implements DocumentRepository {
    * @param file - The file to upload
    * @param title - The document title
    * @param source - Optional document source
-   * @returns Promise<UploadResult> - The upload result
+   * @returns Promise<IUploadResult> - The upload result
    */
-  async uploadDocument(file: File, title: string, source?: string): Promise<UploadResult> {
+  async uploadDocument(file: File, title: string, source?: string): Promise<IUploadResult> {
     if (!file) {
       throw new Error('File is required');
     }
-    
+
     if (!title) {
       throw new Error('Title is required');
     }
-    
-    const newDoc: Document = {
+
+    const newDoc: IDocument = {
       id: `doc-${this.mockDocuments.length + 1}`,
       title,
       filename: file.name,
-      source: source ? {
-        name: source,
-        url: `https://example.com/${source.toLowerCase().replace(/\s+/g, '-')}`
-      } : undefined,
-      timestamp: Date.now()
+      source: source
+        ? {
+            name: source,
+            url: `https://example.com/${source.toLowerCase().replace(/\s+/g, '-')}`,
+          }
+        : undefined,
+      timestamp: Date.now(),
     };
 
     this.mockDocuments.push(newDoc);
@@ -117,22 +124,22 @@ export class MockDocumentRepository implements DocumentRepository {
     return {
       success: true,
       documentId: newDoc.id,
-      chunks: 4
+      chunks: 4,
     };
   }
 
   /**
    * Delete a document from the repository
    * @param documentId - The ID of the document to delete
-   * @returns Promise<DeleteResult> - The delete result
+   * @returns Promise<IDeleteResult> - The delete result
    * @throws Error if document not found
    */
-  async deleteDocument(documentId: string): Promise<DeleteResult> {
+  async deleteDocument(documentId: string): Promise<IDeleteResult> {
     if (!documentId) {
       throw new Error('Document ID is required');
     }
-    
-    const index = this.mockDocuments.findIndex(doc => doc.id === documentId);
+
+    const index = this.mockDocuments.findIndex((doc) => doc.id === documentId);
 
     if (index === -1) {
       throw new Error(`Document with ID ${documentId} not found`);
@@ -142,7 +149,7 @@ export class MockDocumentRepository implements DocumentRepository {
 
     return {
       success: true,
-      documentId
+      documentId,
     };
   }
 
@@ -152,7 +159,7 @@ export class MockDocumentRepository implements DocumentRepository {
    * Set mock documents for testing
    * @param documents - The documents to set
    */
-  setMockDocuments(documents: Document[]): void {
+  setMockDocuments(documents: IDocument[]): void {
     this.mockDocuments = deepClone(documents);
   }
 
@@ -160,7 +167,62 @@ export class MockDocumentRepository implements DocumentRepository {
    * Set mock query result for testing
    * @param result - The query result to set
    */
-  setMockQueryResult(result: QueryResult): void {
+  setMockQueryResult(result: IQueryResult): void {
     this.mockQueryResult = deepClone(result);
+  }
+
+  /**
+   * Get a document by ID
+   * @param id - The document ID
+   * @returns Promise<IDocument> - The document
+   * @throws Error if document not found
+   */
+  async getDocumentById(id: string): Promise<IDocument> {
+    const document = this.mockDocuments.find((doc) => doc.id === id);
+    if (!document) {
+      throw new Error(`Document with ID ${id} not found`);
+    }
+    return deepClone(document);
+  }
+
+  /**
+   * Create a new document
+   * @param document - The document to create
+   * @returns Promise<IDocument> - The created document
+   */
+  async createDocument(document: Partial<IDocument>): Promise<IDocument> {
+    const newDocument: IDocument = {
+      id: document.id || `doc-${Date.now()}`,
+      title: document.title || 'Untitled Document',
+      filename: document.filename || 'untitled.txt',
+      timestamp: document.timestamp || Date.now(),
+      source: document.source,
+    };
+
+    this.mockDocuments.push(newDocument);
+    return deepClone(newDocument);
+  }
+
+  /**
+   * Update an existing document
+   * @param id - The document ID
+   * @param document - The document updates
+   * @returns Promise<IDocument> - The updated document
+   * @throws Error if document not found
+   */
+  async updateDocument(id: string, document: Partial<IDocument>): Promise<IDocument> {
+    const index = this.mockDocuments.findIndex((doc) => doc.id === id);
+    if (index === -1) {
+      throw new Error(`Document with ID ${id} not found`);
+    }
+
+    const updatedDocument = {
+      ...this.mockDocuments[index],
+      ...document,
+      id, // Ensure ID doesn't change
+    };
+
+    this.mockDocuments[index] = updatedDocument;
+    return deepClone(updatedDocument);
   }
 }

@@ -4,8 +4,8 @@ import { SessionProvider } from 'next-auth/react';
 import { AuthProvider } from '../AuthProvider';
 
 // Mock next-auth/react
-jest.mock('next-auth/react', () => ({
-  SessionProvider: jest.fn(({ children }) => <div data-testid="session-provider">{children}</div>),
+vi.mock('next-auth/react', () => ({
+  SessionProvider: vi.fn(({ children }) => <div data-testid="session-provider">{children}</div>),
 }));
 
 describe('AuthProvider', () => {
@@ -31,7 +31,7 @@ describe('AuthProvider', () => {
     expect(SessionProvider).toHaveBeenCalled();
 
     // Get the first call arguments
-    const callArgs = (SessionProvider as jest.Mock).mock.calls[0][0];
+    const callArgs = (SessionProvider as Mock).mock.calls[0][0];
 
     // Check that children prop exists
     expect(callArgs).toHaveProperty('children');

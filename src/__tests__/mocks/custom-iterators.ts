@@ -4,12 +4,12 @@
 
 // Add a simple test to prevent the "no tests" error
 describe('Custom Iterators', () => {
-  test('MapIterator works correctly', () => {
+  it('MapIterator works correctly', () => {
     const array = [1, 2, 3, 4, 5];
     const iterator = new MapIterator(array[Symbol.iterator]());
 
     // Test map
-    const doubled = iterator.map(x => x * 2).toArray();
+    const doubled = iterator.map((x) => x * 2).toArray();
     expect(doubled).toEqual([2, 4, 6, 8, 10]);
   });
 });
@@ -17,14 +17,23 @@ describe('Custom Iterators', () => {
 // Import the types from the dom-extensions.d.ts file
 // Define the interfaces directly in this file
 interface IteratorExtensions<T> {
-  map<U>(callbackfn: (value: T, index: number) => U): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
-  filter(predicate: (value: T, index: number) => boolean): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
+  map<U>(
+    callbackfn: (value: T, index: number) => U
+  ): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
+  filter(
+    predicate: (value: T, index: number) => boolean
+  ): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
   take(count: number): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
   drop(count: number): HeadersIterator<T> | MapIterator<T> | FormDataIterator<T>;
   forEach(callbackfn: (value: T, index: number) => void): void;
   toArray(): T[];
-  flatMap<U>(callbackfn: (value: T, index: number) => U | U[]): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
-  reduce<V>(callbackfn: (previousValue: V, currentValue: T, currentIndex: number) => V, initialValue: V): V;
+  flatMap<U>(
+    callbackfn: (value: T, index: number) => U | U[]
+  ): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
+  reduce<V>(
+    callbackfn: (previousValue: V, currentValue: T, currentIndex: number) => V,
+    initialValue: V
+  ): V;
   some(predicate: (value: T, index: number) => boolean): boolean;
   every(predicate: (value: T, index: number) => boolean): boolean;
 }
@@ -146,7 +155,10 @@ export class HeadersIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     return new HeadersIterator<U>(values[Symbol.iterator]());
   }
 
-  reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U, initialValue: U): U {
+  reduce<U>(
+    callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U,
+    initialValue: U
+  ): U {
     let accumulator = initialValue;
     let result = this.iterator.next();
     let index = 0;
@@ -329,7 +341,10 @@ export class MapIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     return new MapIterator<U>(values[Symbol.iterator]());
   }
 
-  reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U, initialValue: U): U {
+  reduce<U>(
+    callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U,
+    initialValue: U
+  ): U {
     let accumulator = initialValue;
     let result = this.iterator.next();
     let index = 0;
@@ -512,7 +527,10 @@ export class FormDataIterator<T> implements Iterator<T>, IteratorExtensions<T> {
     return new FormDataIterator<U>(values[Symbol.iterator]());
   }
 
-  reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U, initialValue: U): U {
+  reduce<U>(
+    callbackfn: (previousValue: U, currentValue: T, currentIndex: number) => U,
+    initialValue: U
+  ): U {
     let accumulator = initialValue;
     let result = this.iterator.next();
     let index = 0;

@@ -2,12 +2,19 @@
 
 import { Loader2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
-import React, { ReactElement } from "react";
+import { signOut, useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
+import type { ReactElement } from 'react';
 
 /**
  * Admin dashboard page
@@ -15,7 +22,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
  * This page serves as the main dashboard for administrators.
  * It's protected by the middleware and requires authentication.
  */
-export default function AdminDashboardPage(): ReactElement {
+const AdminDashboardPage = (): ReactElement => {
   const { data: session, status } = useSession();
 
   // If not authenticated, redirect to login
@@ -51,9 +58,7 @@ export default function AdminDashboardPage(): ReactElement {
         <Card>
           <CardHeader>
             <CardTitle>Document Management</CardTitle>
-            <CardDescription>
-              Upload and manage recruitment documents
-            </CardDescription>
+            <CardDescription>Upload and manage recruitment documents</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -70,9 +75,7 @@ export default function AdminDashboardPage(): ReactElement {
         <Card>
           <CardHeader>
             <CardTitle>System Status</CardTitle>
-            <CardDescription>
-              View system performance and metrics
-            </CardDescription>
+            <CardDescription>View system performance and metrics</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -89,9 +92,7 @@ export default function AdminDashboardPage(): ReactElement {
         <Card>
           <CardHeader>
             <CardTitle>User Session</CardTitle>
-            <CardDescription>
-              Your current session information
-            </CardDescription>
+            <CardDescription>Your current session information</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -99,7 +100,8 @@ export default function AdminDashboardPage(): ReactElement {
                 <span className="font-medium">Email:</span> {session?.user?.email}
               </p>
               <p className="text-sm">
-                <span className="font-medium">Role:</span> {(session?.user as { role?: string })?.role || 'admin'}
+                <span className="font-medium">Role:</span>{' '}
+                {(session?.user as { role?: string })?.role || 'admin'}
               </p>
             </div>
           </CardContent>
@@ -112,4 +114,6 @@ export default function AdminDashboardPage(): ReactElement {
       </div>
     </div>
   );
-}
+};
+
+export default AdminDashboardPage;

@@ -4,16 +4,16 @@
 
 // Add a simple test to prevent the "no tests" error
 describe('MockNextRequest', () => {
-  test('can be instantiated with a URL', () => {
+  it('can be instantiated with a URL', () => {
     const request = new MockNextRequest('https://example.com');
     expect(request.url).toBe('https://example.com');
     expect(request.method).toBe('GET');
   });
 
-  test('can parse JSON body', async () => {
+  it('can parse JSON body', async () => {
     const request = new MockNextRequest('https://example.com', {
       method: 'POST',
-      body: JSON.stringify({ test: 'data' })
+      body: JSON.stringify({ test: 'data' }),
     });
     const data = await request.json();
     expect(data).toEqual({ test: 'data' });
@@ -26,7 +26,8 @@ describe('MockNextRequest', () => {
 import { MapIterator } from './custom-iterators';
 
 // Define the internal structure for NextURL
-interface _NextURLInternal {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface INextURLInternal {
   basePath: string;
   buildId: string;
   locale: string | undefined;
@@ -54,7 +55,8 @@ export class MockNextURL implements URL {
   buildId: string = '';
   locale: string = '';
   defaultLocale: string = '';
-  domainLocale: { domain: string; defaultLocale: string; locales: string[] } | undefined = undefined;
+  domainLocale: { domain: string; defaultLocale: string; locales: string[] } | undefined =
+    undefined;
 
   // Internal property for NextURL
   // Use a private property instead of a computed property name
@@ -62,7 +64,7 @@ export class MockNextURL implements URL {
     basePath: '',
     buildId: '',
     locale: undefined,
-    defaultLocale: undefined
+    defaultLocale: undefined,
   };
 
   constructor(url: string | URL, base?: string | URL) {
@@ -108,7 +110,8 @@ export class MockNextURL implements URL {
 }
 
 // Define the internal structure for NextRequest
-interface _NextRequestInternal {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface INextRequestInternal {
   cookies: Map<string, string>;
   nextUrl: MockNextURL;
   ip?: string;
@@ -117,7 +120,8 @@ interface _NextRequestInternal {
 }
 
 // Mock RequestCookie interface
-interface _RequestCookie {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+interface IRequestCookie {
   name: string;
   value: string;
 }
@@ -200,10 +204,16 @@ export class MockNextRequest implements Request {
     aborted: false,
     reason: undefined,
     onabort: null,
-    throwIfAborted: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => true
+    throwIfAborted: () => {
+      /* Implementation not needed for tests */
+    },
+    addEventListener: () => {
+      /* Implementation not needed for tests */
+    },
+    removeEventListener: () => {
+      /* Implementation not needed for tests */
+    },
+    dispatchEvent: () => true,
   } as AbortSignal;
 
   // NextRequest properties
@@ -217,7 +227,10 @@ export class MockNextRequest implements Request {
   // Mock data for tests
   private mockJsonData: Record<string, unknown> = {};
 
-  constructor(url: string, options: { method?: string; headers?: HeadersInit; body?: string } = {}) {
+  constructor(
+    url: string,
+    options: { method?: string; headers?: HeadersInit; body?: string } = {}
+  ) {
     this.url = url;
     this.method = options.method || 'GET';
     this.headers = new Headers(options.headers || {});
@@ -234,7 +247,7 @@ export class MockNextRequest implements Request {
       nextUrl: this.nextUrl,
       ip: '127.0.0.1',
       geo: { city: undefined, country: undefined, region: undefined },
-      ua: { isBot: false }
+      ua: { isBot: false },
     };
   }
 
@@ -272,7 +285,7 @@ export class MockNextRequest implements Request {
   clone(): MockNextRequest {
     const clone = new MockNextRequest(this.url, {
       method: this.method,
-      headers: this.headers
+      headers: this.headers,
     });
     clone.mockJsonData = { ...this.mockJsonData };
 
@@ -283,11 +296,11 @@ export class MockNextRequest implements Request {
         nextUrl: clone.nextUrl,
         ip: '127.0.0.1',
         geo: { city: undefined, country: undefined, region: undefined },
-        ua: { isBot: false }
+        ua: { isBot: false },
       },
       writable: false,
       enumerable: true,
-      configurable: false
+      configurable: false,
     });
 
     return clone;

@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { TurnstileWidget } from '../TurnstileWidget';
 
 // Mock the turnstile global object
-const mockRender = jest.fn().mockReturnValue('widget-id-123');
-const mockReset = jest.fn();
+const mockRender = vi.fn().mockReturnValue('widget-id-123');
+const mockReset = vi.fn();
 
 beforeEach(() => {
   // Setup the mock
@@ -16,16 +16,16 @@ beforeEach(() => {
 
 afterEach(() => {
   // Clean up
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   delete window.turnstile;
 });
 
 describe('TurnstileWidget', () => {
   const mockProps = {
     siteKey: 'test-site-key',
-    onVerify: jest.fn(),
-    onExpire: jest.fn(),
-    onError: jest.fn(),
+    onVerify: vi.fn(),
+    onExpire: vi.fn(),
+    onError: vi.fn(),
     theme: 'auto' as const,
   };
 

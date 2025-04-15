@@ -5,10 +5,10 @@ import React from 'react';
 import ChatPage from '@/app/chat/page';
 
 // Mock the toast function
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
@@ -18,9 +18,9 @@ describe('Chat Page E2E Interaction', () => {
 
     // Mock localStorage
     const localStorageMock = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-      removeItem: jest.fn(),
+      getItem: vi.fn().mockReturnValue(null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
     };
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
@@ -64,7 +64,7 @@ describe('Chat Page E2E Interaction', () => {
     // 6. Clear the conversation
     // Mock the confirm function to return true
     const originalConfirm = window.confirm;
-    window.confirm = jest.fn(() => true);
+    window.confirm = vi.fn(() => true);
 
     const clearButton = screen.getByRole('button', { name: 'Clear Conversation' });
     await user.click(clearButton);

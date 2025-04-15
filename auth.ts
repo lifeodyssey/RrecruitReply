@@ -1,6 +1,8 @@
-import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import NextAuth, { type AuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import GitlabProvider from "next-auth/providers/gitlab";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -11,19 +13,21 @@ import { prisma } from "@/lib/prisma";
  */
 
 // Define proper types for the callbacks
-interface User {
+export interface IUser {
+  id: string;
+  name?: string;
   email?: string;
-  role?: string;
+  image?: string;
 }
 
-interface Session {
-  user?: {
-    role?: string;
-  };
+export interface ISession {
+  user?: IUser;
+  expires: string;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     EmailProvider({
       server: {
@@ -36,19 +40,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       from: process.env.EMAIL_FROM || "noreply@recruitreply.com",
     }),
+    GitlabProvider({
+      clientId: process.env.GITLAB_CLIENT_ID ?? "",
+      clientSecret: process.env.GITLAB_CLIENT_SECRET ?? "",
+    }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // Only allow specific email address(es)
-      const allowedEmails = (process.env.ALLOWED_ADMIN_EMAILS || "").split(",");
-      return allowedEmails.includes(user.email || "");
+    async signIn({ user: _user, account: _account, profile: _profile }) {
+      // Allow all users to sign in
+      return true;
     },
-    async session({ session, user }) {
-      // Add role to session
-      if (session.user) {
-        session.user.role = user.role || "admin";
-      }
+    async redirect({ url, baseUrl }) {
+      // Redirect to the callback URL or the base URL
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
+    async session({ session, user: _user, token: _token }) {
+      // Add user info to the session
       return session;
+    },
+    async jwt({ token, user: _user, account: _account, profile: _profile }) {
+      // Add user info to the JWT
+      return token;
     },
   },
   pages: {
@@ -58,4 +70,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt" as const, // Use 'as const' to ensure correct type
   },
-});
+};
+
+export default NextAuth(authOptions);

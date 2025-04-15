@@ -6,14 +6,14 @@ import { POST as queryHandler } from '@/app/api/autorag/query/route';
 import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
 
 // Mock the document service factory first, before using any mocks
-jest.mock('@/infrastructure/factories/document-service-factory', () => ({
-  getDocumentService: jest.fn()
+vi.mock('@/infrastructure/factories/document-service-factory', () => ({
+  getDocumentService: vi.fn(),
 }));
 
 // Create a mock document service
 const mockDocumentService = {
   // Mock implementations
-  query: jest.fn().mockImplementation(queryDto => {
+  query: vi.fn().mockImplementation((queryDto) => {
     // Validate the query and throw an error if it's missing
     if (!queryDto.query) {
       throw new Error('Query is required and must be a string');
@@ -27,43 +27,43 @@ const mockDocumentService = {
           title: 'Sample Resume',
           source: 'HR Department',
           content: 'This is a sample document content.',
-          similarity: 0.92
-        }
-      ]
+          similarity: 0.92,
+        },
+      ],
     });
   }),
 
-  listDocuments: jest.fn().mockResolvedValue([
+  listDocuments: vi.fn().mockResolvedValue([
     {
       id: 'doc-1',
       title: 'Benefits Overview',
       source: 'HR Department',
       timestamp: Date.now(),
-      chunks: 5
+      chunks: 5,
     },
     {
       id: 'doc-2',
       title: 'Recruitment Process',
       source: 'HR Department',
       timestamp: Date.now(),
-      chunks: 3
-    }
+      chunks: 3,
+    },
   ]),
 
-  deleteDocument: jest.fn().mockImplementation(documentId => {
+  deleteDocument: vi.fn().mockImplementation((documentId) => {
     if (!documentId) {
       throw new Error('Document ID is required');
     }
-    
+
     return Promise.resolve({
       success: true,
-      documentId
+      documentId,
     });
-  })
+  }),
 };
 
 // Setup the mock implementation
-(getDocumentService as jest.Mock).mockReturnValue(mockDocumentService);
+(getDocumentService as Mock).mockReturnValue(mockDocumentService);
 
 describe('API Routes', () => {
   describe('/api/autorag/query', () => {
@@ -145,7 +145,9 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.listDocuments to throw an error
-      mockDocumentService.listDocuments.mockRejectedValueOnce(new Error('Failed to list documents'));
+      mockDocumentService.listDocuments.mockRejectedValueOnce(
+        new Error('Failed to list documents')
+      );
 
       // Call the handler
       const response = await listDocumentsHandler();
@@ -197,7 +199,9 @@ describe('API Routes', () => {
 
     it('handles errors from the document service', async () => {
       // Mock the documentService.deleteDocument to throw an error
-      mockDocumentService.deleteDocument.mockRejectedValueOnce(new Error('Failed to delete document'));
+      mockDocumentService.deleteDocument.mockRejectedValueOnce(
+        new Error('Failed to delete document')
+      );
 
       // Create a mock request
       const request = new NextRequest('http://localhost:3000/api/autorag/documents/doc-1', {

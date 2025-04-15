@@ -104,9 +104,9 @@ export default {
         return await this.listDocuments(request, env, corsHeaders);
       } else if (path[0] === 'documents' && path[1] && request.method === 'DELETE') {
         return await this.deleteDocument(request, env, corsHeaders, path[1]);
-      } else {
+      } 
         return new Response('Not found', { status: 404, headers: corsHeaders });
-      }
+      
     } catch (error) {
       console.error('Error processing request:', error);
       return new Response(JSON.stringify({ error: 'Internal server error' }), {
@@ -340,7 +340,7 @@ Answer:`;
         Array.from(documentIds).map(async (id) => {
           // Get the first chunk to extract metadata
           const chunk = await env.DOCUMENTS.get(`${id}/chunk_0.txt`);
-          if (!chunk) return null;
+          if (!chunk) {return null;}
 
           // Query the vector index to get metadata
           const embedding = await this.generateEmbedding(await chunk.text(), env);
@@ -350,7 +350,7 @@ Answer:`;
             returnMetadata: true,
           });
 
-          if (results.matches.length === 0) return null;
+          if (results.matches.length === 0) {return null;}
 
           const metadata = results.matches[0].metadata;
           

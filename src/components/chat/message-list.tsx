@@ -1,16 +1,16 @@
-import React, { useRef, useEffect } from 'react';
-
-import { Message } from '@/domain/models/chat';
+import React, { useEffect, useRef } from 'react';
 
 import { LoadingMessage } from './loading-message';
 import { MessageItem } from './message-item';
 
-interface MessageListProps {
-  messages: Message[];
+import type { IMessage } from '@/domain/models/chat';
+
+interface IMessageListProps {
+  messages: IMessage[];
   isLoading: boolean;
 }
 
-export function MessageList({ messages, isLoading }: MessageListProps): React.ReactElement {
+export const MessageList = ({ messages, isLoading }: IMessageListProps): React.ReactElement => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -20,7 +20,7 @@ export function MessageList({ messages, isLoading }: MessageListProps): React.Re
 
   // Scroll to bottom of messages
   const scrollToBottom = (): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
@@ -36,4 +36,4 @@ export function MessageList({ messages, isLoading }: MessageListProps): React.Re
       <div ref={messagesEndRef} />
     </div>
   );
-} 
+};

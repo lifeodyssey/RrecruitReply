@@ -2,28 +2,38 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import React, { ReactElement , Suspense } from "react";
+import React, { type ReactElement, Suspense } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 /**
  * Component that uses useSearchParams() hook
  * This must be wrapped in a Suspense boundary
  */
-function SearchParamsProvider({ children }: { children: (errorCode: string | null) => React.ReactNode }): ReactElement {
+const SearchParamsProvider = ({
+  children,
+}: {
+  children: (errorCode: string | null) => React.ReactNode;
+}): ReactElement => {
   const searchParams = useSearchParams();
   const errorCode = searchParams?.get('error');
 
   return <>{children(errorCode)}</>;
-}
+};
 
 /**
  * Error content component that receives the error code as a prop
  * instead of using useSearchParams directly
  */
-function ErrorContent({ errorCode }: { errorCode: string | null }): ReactElement {
+const ErrorContent = ({ errorCode }: { errorCode: string | null }): ReactElement => {
   let errorTitle = 'Authentication Error';
   let errorMessage = 'An error occurred during authentication. Please try again.';
 
@@ -52,9 +62,7 @@ function ErrorContent({ errorCode }: { errorCode: string | null }): ReactElement
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-destructive">{errorTitle}</CardTitle>
-          <CardDescription>
-            {errorMessage}
-          </CardDescription>
+          <CardDescription>{errorMessage}</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
@@ -63,36 +71,32 @@ function ErrorContent({ errorCode }: { errorCode: string | null }): ReactElement
         </CardContent>
         <CardFooter>
           <Button asChild className="w-full">
-            <Link href="/admin/login">
-              Return to Login
-            </Link>
+            <Link href="/admin/login">Return to Login</Link>
           </Button>
         </CardFooter>
       </Card>
     </div>
   );
-}
+};
 
 /**
  * Error page wrapper component
  * Properly wraps components using useSearchParams in Suspense
  */
-function ErrorPageContent(): ReactElement {
-  return (
-    <SearchParamsProvider>
-      {(errorCode) => <ErrorContent errorCode={errorCode} />}
-    </SearchParamsProvider>
-  );
-}
+const ErrorPageContent = (): ReactElement => (
+  <SearchParamsProvider>
+    {(errorCode) => <ErrorContent errorCode={errorCode} />}
+  </SearchParamsProvider>
+);
 
 /**
  * Authentication error page
  *
  * This page displays error messages related to authentication.
  */
-export default function AuthErrorPage(): ReactElement {
-  return (
-    <Suspense fallback={
+const AuthErrorPage = (): ReactElement => (
+  <Suspense
+    fallback={
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
@@ -100,8 +104,10 @@ export default function AuthErrorPage(): ReactElement {
           </CardHeader>
         </Card>
       </div>
-    }>
-      <ErrorPageContent />
-    </Suspense>
-  );
-}
+    }
+  >
+    <ErrorPageContent />
+  </Suspense>
+);
+
+export default AuthErrorPage;

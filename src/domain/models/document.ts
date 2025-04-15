@@ -5,7 +5,7 @@
 /**
  * Represents a document in the system
  */
-export interface Document {
+export interface IDocument {
   id: string;
   title: string;
   filename: string;
@@ -19,7 +19,7 @@ export interface Document {
 /**
  * Represents a source referenced in a query result
  */
-export interface Source {
+export interface ISource {
   id: string;
   title: string;
   source: string;
@@ -31,15 +31,15 @@ export interface Source {
 /**
  * Represents the result of a query operation
  */
-export interface QueryResult {
+export interface IQueryResult {
   answer: string;
-  sources: Source[];
+  sources: ISource[];
 }
 
 /**
  * Represents the result of a document upload operation
  */
-export interface UploadResult {
+export interface IUploadResult {
   success: boolean;
   documentId: string;
   chunks: number;
@@ -48,7 +48,7 @@ export interface UploadResult {
 /**
  * Represents the result of a document deletion operation
  */
-export interface DeleteResult {
+export interface IDeleteResult {
   success: boolean;
   documentId: string;
 }

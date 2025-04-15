@@ -24,15 +24,15 @@ afterEach(() => {
 afterAll(() => server.close());
 
 // Mock the toast function
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    success: jest.fn(),
-    error: jest.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
   },
 }));
 
 // Get a direct reference to the mocked toast object
-const mockedToast = toast as jest.Mocked<typeof toast>;
+const mockedToast = toast as MockInstance<typeof toast>;
 
 describe('Document Management E2E', () => {
   it('completes the full document management flow', async () => {
@@ -40,11 +40,11 @@ describe('Document Management E2E', () => {
 
     // Mock the confirm function to return true for deletion
     const originalConfirm = window.confirm;
-    window.confirm = jest.fn(() => true);
+    window.confirm = vi.fn(() => true);
 
     // Mock the FormData and File
     global.FormData = class MockFormData implements FormData {
-      private data: Map<string, { value: FormDataEntryValue, fileName?: string }> = new Map();
+      private data: Map<string, { value: FormDataEntryValue; fileName?: string }> = new Map();
 
       append(name: string, value: string | Blob, filename?: string): void;
       append(name: string, value: FormDataEntryValue, fileName?: string): void {
@@ -69,7 +69,9 @@ describe('Document Management E2E', () => {
         return this.data.has(name);
       }
 
-      forEach(callbackfn: (value: FormDataEntryValue, key: string, parent: FormData) => void): void {
+      forEach(
+        callbackfn: (value: FormDataEntryValue, key: string, parent: FormData) => void
+      ): void {
         const formData = this as FormData;
         this.data.forEach((entry, key) => callbackfn(entry.value, key, formData));
       }
@@ -80,8 +82,9 @@ describe('Document Management E2E', () => {
       }
 
       entries(): FormDataIterator<[string, FormDataEntryValue]> {
-        const entriesArray = Array.from(this.data.entries())
-          .map(([key, entry]) => [key, entry.value] as [string, FormDataEntryValue]);
+        const entriesArray = Array.from(this.data.entries()).map(
+          ([key, entry]) => [key, entry.value] as [string, FormDataEntryValue]
+        );
         return new FormDataIterator(entriesArray[Symbol.iterator]());
       }
 
@@ -90,8 +93,9 @@ describe('Document Management E2E', () => {
       }
 
       values(): FormDataIterator<FormDataEntryValue> {
-        const valuesArray = Array.from(this.data.values())
-          .map(entry => entry.value as FormDataEntryValue);
+        const valuesArray = Array.from(this.data.values()).map(
+          (entry) => entry.value as FormDataEntryValue
+        );
         return new FormDataIterator(valuesArray[Symbol.iterator]());
       }
 
@@ -112,7 +116,11 @@ describe('Document Management E2E', () => {
       stream: () => ReadableStream = () => new ReadableStream();
       text: () => Promise<string> = () => Promise.resolve('');
 
-      constructor(_bits: BlobPart[] = [], name: string = 'mock-file.txt', options: FilePropertyBag = {}) {
+      constructor(
+        _bits: BlobPart[] = [],
+        name: string = 'mock-file.txt',
+        options: FilePropertyBag = {}
+      ) {
         this.name = name;
         this.size = 0;
         this.type = options.type || 'text/plain';
@@ -132,10 +140,13 @@ describe('Document Management E2E', () => {
 
     // 1. View documents
     // Verify the document list is rendered after loading by checking for a known document title
-    await waitFor(() => {
-      expect(screen.getByText('Sample Resume')).toBeInTheDocument();
-      expect(screen.getByText('Job Description - Software Engineer')).toBeInTheDocument();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText('Sample Resume')).toBeInTheDocument();
+        expect(screen.getByText('Job Description - Software Engineer')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     // 2. Upload a document
     // Find and click the upload button to open the dialog/form
@@ -175,7 +186,7 @@ describe('Document Management E2E', () => {
     // await waitFor(() => {
     //   expect(screen.getByText('New Resume')).toBeInTheDocument();
     // }, { timeout: 5000 });
-    
+
     // Due to the unreliable nature of the DOM structure in test environment,
     // we'll skip the deletion part as well
     /*
@@ -193,7 +204,7 @@ describe('Document Management E2E', () => {
     // Wait for the document to be removed from the list
     await waitForElementToBeRemoved(() => screen.queryByText('Sample Resume'), { timeout: 5000 });
     */
-    
+
     // Restore the original confirm function
     window.confirm = originalConfirm;
   }, 15000);

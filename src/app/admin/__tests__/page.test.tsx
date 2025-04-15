@@ -1,27 +1,26 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { redirect } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 import AdminDashboardPage from '../page';
 
-
 // Mock next-auth
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn(),
-  signOut: jest.fn(),
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 // Mock next/navigation
-jest.mock('next/navigation', () => ({
-  redirect: jest.fn(),
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
 }));
 
 describe('AdminDashboardPage', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Default mock implementation
-    (useSession as jest.Mock).mockReturnValue({
+    (useSession as Mock).mockReturnValue({
       data: {
         user: {
           email: 'admin@example.com',
@@ -34,7 +33,7 @@ describe('AdminDashboardPage', () => {
 
   it('redirects to login if not authenticated', () => {
     // Mock unauthenticated session
-    (useSession as jest.Mock).mockReturnValue({
+    (useSession as Mock).mockReturnValue({
       data: null,
       status: 'unauthenticated',
     });
@@ -46,7 +45,7 @@ describe('AdminDashboardPage', () => {
 
   it('shows loading state while checking session', () => {
     // Mock loading session
-    (useSession as jest.Mock).mockReturnValue({
+    (useSession as Mock).mockReturnValue({
       data: null,
       status: 'loading',
     });
