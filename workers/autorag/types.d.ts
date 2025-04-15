@@ -3,7 +3,7 @@
  */
 
 // Cloudflare Vectorize Index
-interface VectorizeIndex {
+interface IVectorizeIndex {
   /**
    * Insert a vector into the index
    */
@@ -49,16 +49,16 @@ interface VectorizeIndex {
 }
 
 // Cloudflare R2 Bucket
-interface R2Bucket {
+interface IR2Bucket {
   /**
    * Get an object from the bucket
    */
-  get(key: string): Promise<R2Object | null>;
+  get(key: string): Promise<IR2Object | null>;
 
   /**
    * Put an object in the bucket
    */
-  put(key: string, value: string | ArrayBuffer | ReadableStream): Promise<R2Object>;
+  put(key: string, value: string | ArrayBuffer | ReadableStream): Promise<IR2Object>;
 
   /**
    * Delete an object from the bucket
@@ -82,7 +82,7 @@ interface R2Bucket {
 }
 
 // Cloudflare R2 Object
-interface R2Object {
+interface IR2Object {
   key: string;
   size: number;
   etag: string;
@@ -112,7 +112,7 @@ interface R2Object {
 }
 
 // Cloudflare Workers Execution Context
-interface ExecutionContext {
+interface IExecutionContext {
   /**
    * Wait until the promise resolves
    */

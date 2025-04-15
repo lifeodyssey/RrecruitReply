@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, Roboto_Mono } from 'next/font/google';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'sonner';
 
@@ -9,13 +9,13 @@ import type { ReactElement, ReactNode } from 'react';
 
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
+  variable: '--font-sans',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const robotoMono = Roboto_Mono({
+  variable: '--font-mono',
   subsets: ['latin'],
 });
 
@@ -31,7 +31,7 @@ const RootLayout = ({
   children: ReactNode;
 }>): ReactElement => (
   <html lang="en" suppressHydrationWarning>
-    <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
       <AuthProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

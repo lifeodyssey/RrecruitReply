@@ -43,8 +43,6 @@ export async function POST(request: NextRequest): Promise<Response> {
 }
 
 // Configure the route to handle large files
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;

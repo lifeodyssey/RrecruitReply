@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import worker from './index';
 
@@ -14,7 +14,7 @@ describe('AutoRAG Worker', () => {
     });
 
     const response = await worker.fetch(request, mockEnv);
-    
+
     expect(response.status).toBe(405);
     expect(await response.text()).toBe('Method not allowed');
   });
@@ -29,7 +29,7 @@ describe('AutoRAG Worker', () => {
     });
 
     const response = await worker.fetch(request, mockEnv);
-    
+
     expect(response.status).toBe(400);
     const responseData = await response.json();
     expect(responseData.error).toBeDefined();
@@ -46,7 +46,7 @@ describe('AutoRAG Worker', () => {
     });
 
     const response = await worker.fetch(request, mockEnv);
-    
+
     expect(response.status).toBe(200);
     const responseData = await response.json();
     expect(responseData.answer).toContain(question);
@@ -59,9 +59,9 @@ describe('AutoRAG Worker', () => {
     });
 
     const response = await worker.fetch(request, mockEnv);
-    
+
     expect(response.status).toBe(500);
     const responseData = await response.json();
     expect(responseData.error).toBeDefined();
   });
-}); 
+});
