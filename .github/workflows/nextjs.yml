@@ -140,7 +140,7 @@ jobs:
       run: npm ci
         
     - name: Download Terraform Outputs
-      uses: dawidd6/action-download-artifact@v2
+      uses: dawidd6/action-download-artifact@v6
       with:
         workflow: terraform.yml
         workflow_conclusion: success
@@ -209,7 +209,7 @@ jobs:
         path: .next
         
     - name: Download Terraform Outputs
-      uses: dawidd6/action-download-artifact@v2
+      uses: dawidd6/action-download-artifact@v6
       with:
         workflow: terraform.yml
         workflow_conclusion: success
