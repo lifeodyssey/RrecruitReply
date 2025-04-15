@@ -26,8 +26,8 @@ describe('MockNextRequest', () => {
 import { MapIterator } from './custom-iterators';
 
 // Define the internal structure for NextURL
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface INextURLInternal {
+// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+interface _INextURLInternal {
   basePath: string;
   buildId: string;
   locale: string | undefined;
@@ -110,8 +110,8 @@ export class MockNextURL implements URL {
 }
 
 // Define the internal structure for NextRequest
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface INextRequestInternal {
+// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+interface _INextRequestInternal {
   cookies: Map<string, string>;
   nextUrl: MockNextURL;
   ip?: string;
@@ -120,8 +120,8 @@ interface INextRequestInternal {
 }
 
 // Mock RequestCookie interface
-// eslint-disable-next-line @typescript-eslint/naming-convention
-interface IRequestCookie {
+// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+interface _IRequestCookie {
   name: string;
   value: string;
 }

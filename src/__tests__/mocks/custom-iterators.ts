@@ -16,7 +16,7 @@ describe('Custom Iterators', () => {
 
 // Import the types from the dom-extensions.d.ts file
 // Define the interfaces directly in this file
-interface IteratorExtensions<T> {
+interface IIteratorExtensions<T> {
   map<U>(
     callbackfn: (value: T, index: number) => U
   ): HeadersIterator<U> | MapIterator<U> | FormDataIterator<U>;
@@ -39,7 +39,7 @@ interface IteratorExtensions<T> {
 }
 
 // Custom HeadersIterator implementation
-export class HeadersIterator<T> implements Iterator<T>, IteratorExtensions<T> {
+export class HeadersIterator<T> implements Iterator<T>, IIteratorExtensions<T> {
   private iterator: Iterator<T>;
 
   constructor(iterator: Iterator<T>) {
@@ -205,7 +205,7 @@ export class HeadersIterator<T> implements Iterator<T>, IteratorExtensions<T> {
 }
 
 // Custom MapIterator implementation for Map-like objects
-export class MapIterator<T> implements Iterator<T>, IteratorExtensions<T> {
+export class MapIterator<T> implements Iterator<T>, IIteratorExtensions<T> {
   // Add Symbol.toStringTag and Symbol.dispose
   readonly [Symbol.toStringTag]: string = 'MapIterator';
   [Symbol.dispose](): void {
@@ -391,7 +391,7 @@ export class MapIterator<T> implements Iterator<T>, IteratorExtensions<T> {
 }
 
 // Custom FormDataIterator implementation
-export class FormDataIterator<T> implements Iterator<T>, IteratorExtensions<T> {
+export class FormDataIterator<T> implements Iterator<T>, IIteratorExtensions<T> {
   // Add Symbol.toStringTag and Symbol.dispose
   readonly [Symbol.toStringTag]: string = 'FormDataIterator';
   [Symbol.dispose](): void {

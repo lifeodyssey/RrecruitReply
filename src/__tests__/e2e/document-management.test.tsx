@@ -32,7 +32,7 @@ vi.mock('sonner', () => ({
 }));
 
 // Get a direct reference to the mocked toast object
-const mockedToast = toast as MockInstance<typeof toast>;
+const mockedToast = toast as Mock<typeof toast>;
 
 describe('Document Management E2E', () => {
   it('completes the full document management flow', async () => {

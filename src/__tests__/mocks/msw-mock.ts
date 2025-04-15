@@ -3,51 +3,51 @@
 // Note: This file is kept for backward compatibility, but we're now using
 // the fetch mock system defined in jest.setup.ts
 
-export interface ResponseContext {
-  status: (code: number) => ResponseContext;
-  json: (data: unknown) => MockResponse;
+export interface IResponseContext {
+  status: (code: number) => IResponseContext;
+  json: (data: unknown) => IMockResponse;
 }
 
-export interface StatusContext {
-  json: (data: unknown) => MockResponse;
+export interface IStatusContext {
+  json: (data: unknown) => IMockResponse;
 }
 
-export interface MockResponse {
+export interface IMockResponse {
   status: number;
   data: unknown;
 }
 
 // Removed unused interface
 
-export type ResponseTransformer = (ctx: ResponseContext) => MockResponse;
+export type ResponseTransformer = (ctx: IResponseContext) => IMockResponse;
 export type ResponseResolver = (
   req: unknown,
   res: ResponseTransformer,
-  ctx: ResponseContext
-) => MockResponse;
-export interface RestHandler {
+  ctx: IResponseContext
+) => IMockResponse;
+export interface IRestHandler {
   type: string;
   method: string;
   url: string;
   handler: ResponseResolver;
 }
 
-export type AnyHandler = RestHandler | unknown; // This allows HttpHandler to be passed
+export type AnyHandler = IRestHandler | unknown; // This allows HttpHandler to be passed
 
 export const rest = {
-  get: (url: string, handler: ResponseResolver): RestHandler => ({
+  get: (url: string, handler: ResponseResolver): IRestHandler => ({
     type: 'rest',
     method: 'GET',
     url,
     handler,
   }),
-  post: (url: string, handler: ResponseResolver): RestHandler => ({
+  post: (url: string, handler: ResponseResolver): IRestHandler => ({
     type: 'rest',
     method: 'POST',
     url,
     handler,
   }),
-  delete: (url: string, handler: ResponseResolver): RestHandler => ({
+  delete: (url: string, handler: ResponseResolver): IRestHandler => ({
     type: 'rest',
     method: 'DELETE',
     url,
@@ -55,7 +55,7 @@ export const rest = {
   }),
 };
 
-interface MockServer {
+interface IMockServer {
   handlers: AnyHandler[];
   listen: Mock;
   close: Mock;
@@ -63,7 +63,7 @@ interface MockServer {
   use: Mock;
 }
 
-interface FetchMockResponse {
+interface IFetchMockResponse {
   ok: boolean;
   status: number;
   json: () => Promise<unknown>;
@@ -72,17 +72,17 @@ interface FetchMockResponse {
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
-    interface Global {
+    interface IGlobal {
       registerFetchMock: (
         url: string,
         method: string,
-        handler: () => Promise<FetchMockResponse>
+        handler: () => Promise<IFetchMockResponse>
       ) => void;
     }
   }
 }
 
-export const setupServer = (...handlers: AnyHandler[]): MockServer => {
+export const setupServer = (...handlers: AnyHandler[]): IMockServer => {
   const server = {
     handlers,
     listen: vi.fn(),
@@ -91,16 +91,16 @@ export const setupServer = (...handlers: AnyHandler[]): MockServer => {
     use: vi.fn((handler: AnyHandler) => {
       // When server.use is called, register a fetch mock
       if (handler && typeof handler === 'object' && 'type' in handler && handler.type === 'rest') {
-        const { method, url, handler: responseHandler } = handler as RestHandler;
+        const { method, url, handler: responseHandler } = handler as IRestHandler;
         const mockCtx = {
-          status: (code: number): StatusContext => ({
-            json: (data: unknown): MockResponse => ({ status: code, data }),
+          status: (code: number): IStatusContext => ({
+            json: (data: unknown): IMockResponse => ({ status: code, data }),
           }),
-          json: (data: unknown): MockResponse => ({ status: 200, data }),
-        } as ResponseContext;
+          json: (data: unknown): IMockResponse => ({ status: 200, data }),
+        } as IResponseContext;
 
         // Create a mock response transformer
-        const mockRes: ResponseTransformer = (_ctx: ResponseContext) => ({ status: 200, data: {} });
+        const mockRes: ResponseTransformer = (_ctx: IResponseContext) => ({ status: 200, data: {} });
 
         // Register a fetch mock for this handler
         global.registerFetchMock(url, method, () => {

@@ -13,7 +13,7 @@ afterEach(() => {
 });
 
 // Setup simple jest compatibility
-(global as any).jest = {
+(global as Record<string, unknown>).jest = {
   fn: vi.fn,
   mock: vi.mock,
   spyOn: vi.spyOn,
@@ -42,12 +42,12 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // DOM element mocks
-Element.prototype.scrollTo = vi.fn() as any;
-Element.prototype.scrollIntoView = vi.fn() as any;
+Element.prototype.scrollTo = vi.fn() as unknown as typeof Element.prototype.scrollTo;
+Element.prototype.scrollIntoView = vi.fn() as unknown as typeof Element.prototype.scrollIntoView;
 
 // Mock fetch functionality for tests
 // This will allow tests to mock fetch responses
-interface FetchMockHandler {
+interface IFetchMockHandler {
   (request: Request): Promise<Response>;
 }
 
@@ -58,7 +58,7 @@ interface FetchMockHandler {
  * @param handler A function that returns a Response
  * @returns A cleanup function to remove the mock
  */
-(global as any).registerFetchMock = (url: string, method: string, handler: FetchMockHandler): (() => void) => {
+(global as Record<string, unknown>).registerFetchMock = (url: string, method: string, handler: IFetchMockHandler): (() => void) => {
   // Store the original fetch
   const originalFetch = global.fetch;
 

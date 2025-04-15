@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import type { DefaultBodyType, PathParams, StrictRequest } from 'msw';
 
 // Define types for request parameters
-interface DocumentIdParams {
+interface IDocumentIdParams {
   id: string;
 }
 // Removed unused UploadRequestBody type
@@ -108,7 +108,7 @@ export const handlers = [
   // DELETE /api/autorag/documents/:id - Delete document
   http.delete(
     '/api/autorag/documents/:id',
-    ({ params }: { params: PathParams<keyof DocumentIdParams> }) => {
+    ({ params }: { params: PathParams<keyof IDocumentIdParams> }) => {
       const { id } = params;
       const initialLength = mockDocuments.length;
       mockDocuments = mockDocuments.filter((doc) => doc.id !== id);
@@ -134,11 +134,13 @@ export const handlers = [
 // Add this at the end of the file
 // This is a mock file, but adding a simple test to make Vitest happy
 
-if (import.meta.vitest) {
+// Check if we're in a test environment
+if (typeof describe === 'function' && typeof it === 'function' && typeof expect === 'function') {
   describe('Handlers', () => {
     it('should export valid handlers', () => {
       // This is just a placeholder test to make Vitest happy
-      expect(true).toBe(true);
+      expect(handlers).toBeDefined();
+      expect(handlers.length).toBeGreaterThan(0);
     });
   });
 }

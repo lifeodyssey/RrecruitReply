@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import './mocks/custom-iterators';
 
-import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 
-import { isAuthPath, isPublicPath, middleware } from '../../middleware';
+// Import the middleware functions
+import { isAuthPath, isPublicPath, middleware } from '../middleware';
 
 import type { NextRequest } from 'next/server';
 
@@ -306,9 +306,17 @@ vi.mock('next/server', () => ({
   },
 }));
 
+// Mock the getToken function
+vi.mock('next-auth/jwt', () => ({
+  getToken: vi.fn().mockResolvedValue(null),
+}));
+
+// Get the mocked function with the correct type
+const getToken = vi.mocked(await import('next-auth/jwt')).getToken;
+
 // Mock middleware helper functions
-vi.mock('../../middleware', async () => {
-  const originalModule = await import('../../middleware');
+vi.mock('../middleware', async () => {
+  const originalModule = await import('../middleware');
   return {
     ...originalModule,
     isPublicPath: vi.fn(),
