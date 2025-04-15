@@ -3,26 +3,20 @@
 import { useEffect, useRef } from 'react';
 
 import type { ReactElement } from 'react';
+import type { ITurnstileAPI } from '@/types/turnstile';
 
-interface ITurnstileOptions {
-  sitekey: string;
-  callback: (token: string) => void;
-  'expired-callback'?: () => void;
-  'error-callback'?: (error: Error) => void;
-  theme?: 'light' | 'dark' | 'auto';
-}
+// We're using the ITurnstileOptions from the imported type
 
-interface ITurnstile {
-  render: (container: HTMLElement, options: ITurnstileOptions) => string;
-  reset: (widgetId: string) => void;
-}
-
+// Use the ITurnstileAPI interface from the global type definition
 // Extend the Window interface globally
+// We need to use Window (not IWindow) to extend the global Window interface
+/* eslint-disable @typescript-eslint/naming-convention */
 declare global {
   interface Window {
-    turnstile?: ITurnstile;
+    turnstile?: ITurnstileAPI;
   }
 }
+/* eslint-enable @typescript-eslint/naming-convention */
 
 interface ITurnstileWidgetProps {
   siteKey: string;
