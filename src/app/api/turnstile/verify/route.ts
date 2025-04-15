@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -27,11 +28,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     if (!TURNSTILE_SECRET_KEY) {
-      console.error('TURNSTILE_SECRET_KEY is not configured');
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     // Verify the token with Cloudflare
@@ -57,23 +54,20 @@ export async function POST(request: NextRequest): Promise<Response> {
         challenge_ts: outcome.challenge_ts,
         hostname: outcome.hostname,
       });
-    } else {
-      // Token is invalid
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid token',
-          details: outcome['error-codes'],
-        },
-        { status: 400 }
-      );
     }
+    // Token is invalid
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Invalid token',
+        details: outcome['error-codes'],
+      },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error('Error verifying Turnstile token:', error);
-
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to verify token' },
-      { status: 500 }
+      { status: 400 }
     );
   }
 }

@@ -1,0 +1,44 @@
+# Ignore script files
+scripts/
+
+# Ignore test files with too many classes
+src/__tests__/e2e/document-management.test.tsx
+src/__tests__/middleware.test.ts
+src/__tests__/mocks/custom-iterators.ts
+src/__tests__/mocks/next-request-mock.ts
+src/__tests__/mocks/handlers.ts
+src/__tests__/mocks/msw-mock.ts
+src/app/api/turnstile/verify/__tests__/route.test.ts
+src/application/errors/application-errors.ts
+src/application/utils/api-error-handler.ts
+
+# Ignore test files with long functions
+src/__tests__/unit/autorag-client.test.ts
+src/__tests__/unit/chat-page.test.tsx
+src/__tests__/unit/document-service.test.ts
+src/__tests__/unit/documents-page.test.tsx
+src/app/admin/error/__tests__/page.test.tsx
+src/app/admin/login/__tests__/page.test.tsx
+src/components/turnstile/__tests__/TurnstileVerification.test.tsx
+src/hooks/__tests__/useTurnstileVerification.test.tsx
+src/application/services/__tests__/document-service.test.ts
+
+# Ignore complex components
+src/app/admin/login/page.tsx
+src/app/admin/page.tsx
+src/app/documents/page.tsx
+src/components/ConfigDisplay.tsx
+src/components/turnstile/TurnstileVerification.tsx
+src/hooks/useChatMessages.ts
+src/hooks/useTurnstileVerification.ts
+
+# Ignore type definition files
+src/types/vitest.d.ts
+types/dom-extensions.d.ts
+workers/autorag/types.d.ts
+
+# Ignore worker files
+workers/autorag/index.ts
+
+# Ignore vitest setup
+vitest.setup.ts

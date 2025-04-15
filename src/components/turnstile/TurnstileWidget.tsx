@@ -1,26 +1,30 @@
 'use client';
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
+import type { ReactElement } from 'react';
+
+interface ITurnstileOptions {
+  sitekey: string;
+  callback: (token: string) => void;
+  'expired-callback'?: () => void;
+  'error-callback'?: (error: Error) => void;
+  theme?: 'light' | 'dark' | 'auto';
+}
+
+interface ITurnstile {
+  render: (container: HTMLElement, options: ITurnstileOptions) => string;
+  reset: (widgetId: string) => void;
+}
+
+// Extend the Window interface globally
 declare global {
   interface Window {
-    turnstile?: {
-      render: (
-        container: HTMLElement,
-        options: {
-          sitekey: string;
-          callback: (token: string) => void;
-          'expired-callback'?: () => void;
-          'error-callback'?: (error: Error) => void;
-          theme?: 'light' | 'dark' | 'auto';
-        }
-      ) => string;
-      reset: (widgetId: string) => void;
-    };
+    turnstile?: ITurnstile;
   }
 }
 
-interface TurnstileWidgetProps {
+interface ITurnstileWidgetProps {
   siteKey: string;
   onVerify: (token: string) => void;
   onExpire?: () => void;
@@ -35,25 +39,27 @@ interface TurnstileWidgetProps {
  * This component renders a Cloudflare Turnstile widget for human verification.
  * It requires the Turnstile script to be loaded in the page.
  */
-export function TurnstileWidget({
+export const TurnstileWidget = ({
   siteKey,
   onVerify,
   onExpire,
   onError,
   theme = 'auto',
   className = '',
-}: TurnstileWidgetProps): React.ReactElement {
+}: ITurnstileWidgetProps): ReactElement => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Wait for Turnstile to be loaded
-    if (!window.turnstile || !containerRef.current) return;
+    if (!window.turnstile || !containerRef.current) {
+      return;
+    }
 
     // Render the widget
     const id = window.turnstile.render(containerRef.current, {
       sitekey: siteKey,
-      callback: (token): void => {
+      callback: (token: string): void => {
         onVerify(token);
       },
       'expired-callback': onExpire,
@@ -72,4 +78,4 @@ export function TurnstileWidget({
   }, [siteKey, onVerify, onExpire, onError, theme]);
 
   return <div ref={containerRef} className={className} data-testid="turnstile-container" />;
-}
+};

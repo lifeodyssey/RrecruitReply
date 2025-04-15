@@ -1,19 +1,26 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import React, { ReactElement , useState } from "react";
-
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
-
 import { TurnstileWidget } from './TurnstileWidget';
+
+import type { ReactElement } from 'react';
 
 // Get the site key from environment variables
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
-interface TurnstileVerificationProps {
+interface ITurnstileVerificationProps {
   onVerificationComplete: () => void;
 }
 
@@ -23,7 +30,9 @@ interface TurnstileVerificationProps {
  * This component handles the verification flow for Cloudflare Turnstile,
  * showing a CAPTCHA widget and handling the verification process.
  */
-export function TurnstileVerification({ onVerificationComplete }: TurnstileVerificationProps): ReactElement {
+export const TurnstileVerification = ({
+  onVerificationComplete,
+}: ITurnstileVerificationProps): ReactElement => {
   const { isVerified, isLoading, verifyToken } = useTurnstileVerification();
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -31,7 +40,7 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
   // If already verified, call the completion handler
   if (isVerified && !isLoading) {
     onVerificationComplete();
-    return <></>;
+    return <div data-testid="verification-complete"></div>;
   }
 
   // Handle token verification
@@ -48,7 +57,6 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
         setVerificationError('Verification failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error during verification:', error);
       setVerificationError('An error occurred during verification. Please try again.');
     } finally {
       setIsVerifying(false);
@@ -56,8 +64,7 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
   };
 
   // Handle verification errors
-  const handleError = (error: Error): void => {
-    console.error('Turnstile error:', error);
+  const handleError = (_error: Error): void => {
     setVerificationError('An error occurred with the verification widget. Please try again.');
   };
 
@@ -107,4 +114,4 @@ export function TurnstileVerification({ onVerificationComplete }: TurnstileVerif
       </CardFooter>
     </Card>
   );
-}
+};

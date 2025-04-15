@@ -4,14 +4,17 @@ import js from "@eslint/js";
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import'; // Added import plugin
+import jestPlugin from 'eslint-plugin-jest'; // Added jest plugin
 import { fileURLToPath } from "url";
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Handle project references for TypeScript
 const compat = new FlatCompat({
   baseDirectory: __dirname,
+  recommendedConfig: {},
 });
 
 const restrictedImports = {
@@ -19,107 +22,159 @@ const restrictedImports = {
 };
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Define global ignores
     ignores: [
-      ".next/**",
-      "node_modules/**",
-      "coverage/**",
-      "public/**",
-      "dist/**",
-      "build/**",
-      "babel.config.test.js",
-      "jest.config.js",
-      "postcss.config.js",
-      "tailwind.config.js",
-      "src/__tests__/mocks/fileMock.js", // Keep specific ignore from original flat config
+      '.next/**',
+      'node_modules/**',
+      'public/**',
+      'coverage/**',
+      'dist/**',
+      '.github/**',
+      '**/*.config.js',
+      '**/*.config.mjs',
+      'next-env.d.ts',
     ],
-    plugins: {
-      "@next/next": nextPlugin,
-      "@typescript-eslint": typescriptPlugin,
-      "import": importPlugin, // Added import plugin
-    },
+  },
+  // Main eslint-config-next compatibility config
+  ...compat.extends('next/core-web-vitals'),
+  // TypeScript specific rules
+  {
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
-        project: true,
+        project: './tsconfig.json',
+        ecmaVersion: 'latest',
+        sourceType: 'module',
       },
     },
+    plugins: {
+      '@typescript-eslint': typescriptPlugin,
+    },
     rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_"
-      }],
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/explicit-function-return-type": "warn", // Changed from off to warn to encourage explicit return types
-      "@typescript-eslint/consistent-type-definitions": "warn",
-      // Added from .eslintrc.json
-      "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/no-unsafe-function-type": "off",
-      "@typescript-eslint/no-wrapper-object-types": "off",
-      "@typescript-eslint/triple-slash-reference": "off",
-      "@typescript-eslint/no-require-imports": "off", // Will be overridden for jest.setup.ts
-      "import/no-anonymous-default-export": "off",
-      // Additional clean code rules
-      "@typescript-eslint/naming-convention": [
-        "warn",
+      // Strict TypeScript rules
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: true }],
+      '@typescript-eslint/explicit-module-boundary-types': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/naming-convention': [
+        'error',
         {
-          "selector": "interface",
-          "format": ["PascalCase"],
-          "custom": {
-            "regex": "^I[A-Z]",
-            "match": false
-          }
+          selector: 'interface',
+          format: ['PascalCase'],
+          prefix: ['I'],
         },
         {
-          "selector": "typeAlias",
-          "format": ["PascalCase"]
+          selector: 'typeAlias',
+          format: ['PascalCase'],
         },
         {
-          "selector": "class",
-          "format": ["PascalCase"]
+          selector: 'enum',
+          format: ['PascalCase'],
         },
-        {
-          "selector": "function",
-          "format": ["camelCase"]
-        }
       ],
-      "@typescript-eslint/explicit-member-accessibility": ["warn", { "accessibility": "explicit" }],
-      "@typescript-eslint/member-ordering": "warn",
-      // Import plugin rules (existing)
-      "import/order": [
-        "warn",
-        {
-          "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
-          "newlines-between": "always",
-          "alphabetize": { "order": "asc", "caseInsensitive": true }
-        }
-      ],
-      "import/no-unresolved": "off", // Handled by TypeScript
-      "import/no-duplicates": "warn",
-      "import/newline-after-import": "warn",
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
     },
   },
-  // Override for Jest setup file to allow require
+  // React specific rules
   {
-    files: ["jest.setup.ts"],
+    files: ['**/*.tsx', '**/*.jsx'],
     rules: {
-      "@typescript-eslint/no-var-requires": "off",
+      'react/prop-types': 'off', // TypeScript handles prop validation
+      'react/require-default-props': 'off', // TypeScript handles default props
+      'react/jsx-filename-extension': ['error', { extensions: ['.tsx', '.jsx'] }],
+      'react/function-component-definition': ['error', { namedComponents: 'arrow-function' }],
+      'react/jsx-handler-names': [
+        'warn',
+        {
+          eventHandlerPrefix: 'handle',
+          eventHandlerPropPrefix: 'on',
+        },
+      ],
+      'react/jsx-key': 'error',
+      'react/jsx-no-useless-fragment': 'error',
+      'react/no-array-index-key': 'warn',
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  // Override for test files (from .eslintrc.json)
+  // Test file specific rules
   {
-    files: [
-      "**/__tests__/**/*",
-      "**/__mocks__/**/*",
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "**/*.spec.ts",
-      "**/*.spec.tsx",
-    ],
+    files: ['**/__tests__/**/*.ts', '**/__tests__/**/*.tsx', '**/*.test.ts', '**/*.test.tsx'],
+    plugins: {
+      'jest': jestPlugin,
+      // Vitest plugin is temporarily disabled due to dependency issues
+    },
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/explicit-function-return-type": "off",
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      'jest/valid-expect': 'error',
+      'jest/expect-expect': 'error',
+      'jest/no-identical-title': 'error',
+      'jest/no-focused-tests': 'error',
+      'jest/no-disabled-tests': process.env.CI ? 'error' : 'warn',
+      // Vitest rules are temporarily disabled due to dependency issues
+      // 'vitest/expect-expect': 'error',
+      // 'vitest/no-identical-title': 'error',
+      // 'vitest/no-focused-tests': 'error',
+      // 'vitest/no-disabled-tests': process.env.CI ? 'error' : 'warn',
+    },
+  },
+  // Clean code and best practices
+  {
+    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+    rules: {
+      // SOLID principles related
+      'max-classes-per-file': ['error', 1],
+      'max-depth': ['error', 3],
+      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-params': ['warn', 3],
+      'complexity': ['warn', 8],
+      
+      // Clean code
+      'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'no-duplicate-imports': 'error',
+      'no-unused-expressions': 'error',
+      'no-return-await': 'error',
+      'no-useless-return': 'error',
+      'no-else-return': 'error',
+      'no-useless-constructor': 'error',
+      'no-empty-function': 'error',
+      'arrow-body-style': ['error', 'as-needed'],
+      'eqeqeq': ['error', 'always'],
+      'curly': ['error', 'all'],
+      
+      // Import organization
+      'import/order': [
+        'error',
+        {
+          'groups': [
+            'builtin',
+            'external',
+            'internal',
+            'parent',
+            'sibling',
+            'index',
+            'object',
+            'type',
+          ],
+          'newlines-between': 'always',
+          'alphabetize': { order: 'asc', caseInsensitive: true },
+        },
+      ],
+      'sort-imports': [
+        'error',
+        {
+          ignoreCase: true,
+          ignoreDeclarationSort: true,
+        },
+      ],
     },
   },
 ];

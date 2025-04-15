@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { NextRequest } from 'next/server';
+import { getToken } from "next-auth/jwt";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
 
 /**
  * Middleware to protect admin routes
@@ -9,30 +10,32 @@ import { NextRequest } from 'next/server';
  * If not authenticated, the user is redirected to the login page.
  */
 export async function middleware(request: NextRequest): Promise<NextResponse> {
-  const path = request.nextUrl.pathname;
+  const pathname = request.nextUrl.pathname;
 
-  // Check if the path is for admin routes
-  if (path.startsWith('/admin') && !path.startsWith('/admin/login') && !path.startsWith('/admin/error')) {
-    const isAuthenticated = await checkAuthentication(request);
-    
-    // Redirect to login if not authenticated
-    if (!isAuthenticated) {
-      const url = new URL('/admin/login', request.url);
-      url.searchParams.set('callbackUrl', encodeURI(request.url));
-      return NextResponse.redirect(url);
-    }
+  // Check if path is public (doesn't require authentication)
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
   }
 
-  // Check if the path is for admin API routes
-  if (path.startsWith('/api/admin')) {
-    const isAuthenticated = await checkAuthentication(request);
-    
-    // Return unauthorized if not authenticated
-    if (!isAuthenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+  // Check if path requires authentication
+  if (isAuthPath(pathname)) {
+    // Get JWT token from cookie and validate
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    // If user has no token but tries to access protected route
+    if (!token) {
+      // For API routes, return 401 Unauthorized
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      // For other routes, redirect to login
+      const url = new URL("/admin/login", request.url);
+      url.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(url);
     }
   }
 
@@ -40,17 +43,42 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 /**
- * Helper function to check if a user is authenticated
+ * Check if the path is public (doesn't require authentication)
  */
-async function checkAuthentication(request: NextRequest): Promise<boolean> {
-  const session = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  
-  return !!session;
+export function isPublicPath(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    pathname === "/chat" ||
+    pathname === "/admin/login" ||
+    pathname === "/admin/error" ||
+    pathname.startsWith("/api/turnstile") ||
+    pathname.startsWith("/api/autorag/query") ||
+    pathname.startsWith("/_next") ||
+    pathname.includes(".")
+  );
+}
+
+/**
+ * Check if the path requires authentication
+ */
+export function isAuthPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/autorag/upload") ||
+    pathname.startsWith("/api/autorag/delete") ||
+    pathname.startsWith("/api/autorag/documents") ||
+    pathname.startsWith("/documents")
+  );
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: [
+    /*
+     * Match all request paths except for:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    "/((?!_next/static|_next/image|favicon.ico).*)",
+  ],
 };
