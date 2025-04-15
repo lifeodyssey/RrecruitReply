@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 
 /**
  * Script to update Cloudflare Pages environment variables from Terraform outputs
@@ -6,9 +7,9 @@
  * the Next.js application with values from the infrastructure deployment
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Configuration from environment variables
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
@@ -36,11 +37,11 @@ if (!fs.existsSync(ENV_FILE_PATH)) {
 function parseEnvFile(filePath) {
   const envVars = {};
   const content = fs.readFileSync(filePath, 'utf8');
-  
+
   content.split('\n').forEach(line => {
     line = line.trim();
-    if (!line || line.startsWith('#')) return;
-    
+    if (!line || line.startsWith('#')) {return;}
+
     const match = line.match(/^([^=]+)=(.*)$/);
     if (match) {
       const key = match[1].trim();
@@ -48,7 +49,7 @@ function parseEnvFile(filePath) {
       envVars[`NEXT_PUBLIC_${key}`] = value;
     }
   });
-  
+
   return envVars;
 }
 
@@ -58,16 +59,16 @@ function parseEnvFile(filePath) {
  */
 async function updateCloudflareVars(envVars) {
   console.log(`Updating Cloudflare Pages environment variables for project ${PROJECT_NAME}...`);
-  
+
   // Create temp JSON file for environment variables
   const tempFilePath = path.join(process.cwd(), 'cloudflare_env_vars.json');
   fs.writeFileSync(tempFilePath, JSON.stringify(envVars, null, 2));
-  
+
   try {
     // Use wrangler to update environment variables
     const command = `npx wrangler pages deployment-variable set ${PROJECT_NAME} --json @${tempFilePath}`;
     console.log(`Running: ${command}`);
-    
+
     const result = execSync(command, {
       env: {
         ...process.env,
@@ -75,7 +76,7 @@ async function updateCloudflareVars(envVars) {
         CLOUDFLARE_ACCOUNT_ID
       }
     });
-    
+
     console.log('Environment variables updated successfully!');
     console.log(result.toString());
   } catch (error) {
@@ -94,13 +95,13 @@ async function updateCloudflareVars(envVars) {
   try {
     const envVars = parseEnvFile(ENV_FILE_PATH);
     console.log(`Found ${Object.keys(envVars).length} environment variables to update`);
-    
+
     // Add timestamp for tracking when variables were last updated
     envVars.NEXT_PUBLIC_INFRA_UPDATED_AT = new Date().toISOString();
-    
+
     await updateCloudflareVars(envVars);
   } catch (error) {
     console.error('Error:', error.message);
     process.exit(1);
   }
-})(); 
+})();
