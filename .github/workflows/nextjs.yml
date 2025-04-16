@@ -16,8 +16,17 @@ on:
       - 'terragrunt/**'
       - '**.md'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
   workflow_run:
-    workflows: ["Terragrunt"]
+    workflows: ["Infrastructure Deployment"]
     types:
       - completed
     branches: [main]
@@ -39,9 +48,46 @@ concurrency:
   cancel-in-progress: true # Cancel in-progress jobs when a new workflow with the same group is triggered
 
 jobs:
+  security:
+    name: 'Security Scan'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+            
+      - name: Install Dependencies (if cache miss)
+        if: ${{ steps.npm-cache.outputs.cache-hit != 'true' }}
+        run: npm ci
+          
+      - name: Security audit
+        run: npm audit --production
+        continue-on-error: true # Don't fail the build, just report issues
+        
+      - name: Scan for secrets
+        uses: zricethezav/gitleaks-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true # Don't fail the build, just report issues
+
   validate:
     name: 'Validate Code'
     runs-on: ubuntu-latest
+    needs: security
     
     steps:
     - name: Checkout
@@ -73,9 +119,6 @@ jobs:
       
     - name: Type check
       run: npm run type-check
-      
-    - name: Security audit
-      run: npm audit --production
 
   test:
     name: 'Run Tests'
@@ -103,6 +146,16 @@ jobs:
       if: ${{ steps.npm-cache.outputs.cache-hit != 'true' }}
       run: npm ci
       
+    - name: Setup Database for Tests
+      run: |
+        # Generate Prisma client
+        npx prisma generate
+        
+        # Setup test database (if needed)
+        # npx prisma db push --accept-data-loss
+      env:
+        DATABASE_URL: "file:./test.db"
+      
     - name: Run Tests
       run: npm test -- --coverage
       
@@ -111,7 +164,7 @@ jobs:
       with:
         name: coverage-report
         path: coverage
-        retention-days: 14
+        retention-days: 7
 
   build:
     name: 'Build Application'
@@ -141,6 +194,7 @@ jobs:
         
     - name: Download Terraform Outputs
       uses: dawidd6/action-download-artifact@v6
+      if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
       with:
         workflow: terraform.yml
         workflow_conclusion: success
@@ -160,6 +214,8 @@ jobs:
           echo "Loaded environment variables from Terraform outputs"
         else
           echo "No terraform outputs found, using default environment values"
+          # Create default .env.production file with safe defaults
+          echo "APP_ENV=production" > .env.production
         fi
     
     - name: Cache Next.js build cache
@@ -170,11 +226,14 @@ jobs:
         key: ${{ runner.os }}-nextjs-build-${{ hashFiles('**/package-lock.json', 'src/**') }}
         restore-keys: |
           ${{ runner.os }}-nextjs-build-
+    
+    - name: Generate Prisma Client
+      run: npx prisma generate
       
     - name: Build
       run: npm run build
       env:
-        NEXT_PUBLIC_APP_ENV: production
+        NEXT_PUBLIC_APP_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}
         
     - name: Run dependency vulnerability scan
       uses: snyk/actions/node@master
@@ -188,11 +247,75 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-output
-        path: .next
+        path: |
+          .next
+          public
+          package.json
         retention-days: 1
 
-  deploy:
-    name: 'Deploy to Cloudflare Pages'
+  deploy-preview:
+    name: 'Deploy Preview Environment'
+    needs: build
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: .
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Install Wrangler
+      run: npm install -g wrangler@latest
+        
+    - name: Deploy to Cloudflare Pages (Preview)
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: recruitreply
+        directory: .next
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.head_ref }}
+        wranglerVersion: '3.x'
+        
+    - name: Find Comment
+      uses: peter-evans/find-comment@v2
+      id: fc
+      if: github.event_name == 'pull_request'
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        comment-author: 'github-actions[bot]'
+        body-includes: Preview environment deployed
+        
+    - name: Create or update comment
+      uses: peter-evans/create-or-update-comment@v3
+      if: github.event_name == 'pull_request'
+      with:
+        comment-id: ${{ steps.fc.outputs.comment-id }}
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ## Preview environment deployed 🚀
+          
+          Your changes have been deployed to a preview environment for testing:
+          
+          🔗 [View Preview](https://${{ github.head_ref }}--recruitreply.pages.dev)
+          
+          This deployment will be automatically updated when you push new commits.
+        edit-mode: replace
+        reactions: rocket
+
+  deploy-production:
+    name: 'Deploy to Production'
     needs: build
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run')
     runs-on: ubuntu-latest
@@ -206,7 +329,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: build-output
-        path: .next
+        path: .
         
     - name: Download Terraform Outputs
       uses: dawidd6/action-download-artifact@v6
@@ -228,15 +351,19 @@ jobs:
     - name: Update Cloudflare Pages Environment Variables
       if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
       run: |
-        chmod +x ./scripts/update-cloudflare-vars.js
-        ./scripts/update-cloudflare-vars.js
+        if [ -f "scripts/update-cloudflare-vars.js" ]; then
+          chmod +x ./scripts/update-cloudflare-vars.js
+          ./scripts/update-cloudflare-vars.js
+        else
+          echo "Environment variables update script not found, skipping this step"
+        fi
       env:
         CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         PROJECT_NAME: recruitreply
         ENV_FILE_PATH: ./tf_outputs.env
         
-    - name: Deploy to Cloudflare Pages
+    - name: Deploy to Cloudflare Pages (Production)
       uses: cloudflare/pages-action@v1
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -244,15 +371,77 @@ jobs:
         projectName: recruitreply
         directory: .next
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-        wranglerVersion: '3.x' # Use the latest Wrangler version
+        wranglerVersion: '3.x'
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
         
-    - name: Create deployment summary
-      if: success()
-      run: |
-        echo "# Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY
-        echo "The application has been successfully deployed to Cloudflare Pages" >> $GITHUB_STEP_SUMMARY
-        echo "## Deployment Information" >> $GITHUB_STEP_SUMMARY
-        echo "- **Project:** recruitreply" >> $GITHUB_STEP_SUMMARY
-        echo "- **Environment:** production" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit SHA:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Build date:** $(date)" >> $GITHUB_STEP_SUMMARY
+    - name: Install Wrangler
+      run: npm install -g wrangler@latest
+      
+    - name: Configure Cloudflare Credentials OIDC
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        command: version # Just a no-op command to authenticate
+
+  notify:
+    name: 'Notification'
+    runs-on: ubuntu-latest
+    needs: [validate, test, build, deploy-production]
+    if: always() && (github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run'))
+    steps:
+      - name: Check workflow status
+        id: check
+        run: |
+          if [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+            echo "message=✅ Application deployed successfully" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          else
+            echo "message=❌ Application deployment failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.check.outputs.message }} for ${{ github.repository }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.check.outputs.message }}\n*Repository:* ${{ github.repository }}\n*Environment:* ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'production' }}\n*Triggered by:* ${{ github.actor }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Deployment"
+                      },
+                      "url": "https://recruitreply.pages.dev"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

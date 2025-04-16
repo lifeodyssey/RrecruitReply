@@ -1,4 +1,4 @@
-name: 'Terragrunt'
+name: 'Infrastructure Deployment'
 
 on:
   push:
@@ -14,6 +14,15 @@ on:
       - 'terraform_modules/**'
       - 'terragrunt/**'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
 
 permissions:
   contents: read
@@ -21,148 +30,398 @@ permissions:
   security-events: write
   id-token: write # Needed for OIDC authentication
 
-jobs:
-  terragrunt:
-    name: 'Terragrunt'
-    runs-on: ubuntu-latest
-    environment: production
+env:
+  TF_VERSION: '1.8.0'
+  TG_VERSION: '0.55.0'
+  TFLINT_VERSION: 'v0.50.0'
 
+jobs:
+  security-scan:
+    name: 'Infrastructure Security Scan'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-sarif-action@v0.1.4
+        with:
+          sarif_file: tfsec-results.sarif
+          working_directory: .
+          
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: tfsec-results.sarif
+          category: tfsec
+          
+      - name: Run checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: terraform
+          output_format: sarif
+          
+      - name: Upload checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov
+
+  validate:
+    name: 'Validate Infrastructure'
+    runs-on: ubuntu-latest
+    needs: security-scan
     defaults:
       run:
         working-directory: ./terragrunt
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configure Cloudflare Credentials OIDC
-      uses: cloudflare/wrangler-action@v3
-      with:
-        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        command: version # Just a no-op command to authenticate
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: '1.7.5'
-        terraform_wrapper: false
+      - name: Install Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TG_VERSION }}/terragrunt_linux_amd64 -O /tmp/terragrunt
+          chmod +x /tmp/terragrunt
+          sudo mv /tmp/terragrunt /usr/local/bin/terragrunt
+          
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: ${{ env.TFLINT_VERSION }}
+          
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint --recursive --format=sarif > tflint-results.sarif
+          
+      - name: Upload TFLint results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ./terragrunt/tflint-results.sarif
+          category: tflint
 
-    - name: Install Terragrunt
-      run: |
-        wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v0.55.0/terragrunt_linux_amd64 -O /tmp/terragrunt
-        chmod +x /tmp/terragrunt
-        sudo mv /tmp/terragrunt /usr/local/bin/terragrunt
-        
-    - name: Setup TFLint
-      uses: terraform-linters/setup-tflint@v4
-      with:
-        tflint_version: v0.50.0
-        
-    - name: Run TFLint
-      run: |
-        tflint --init
-        tflint --recursive --format=sarif > tflint-results.sarif
-        
-    - name: Upload TFLint results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: ./terragrunt/tflint-results.sarif
-        category: tflint
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check -recursive ..
+        continue-on-error: true
 
-    - name: Terraform Format
-      id: fmt
-      run: terraform fmt -check -recursive ..
-      continue-on-error: true
+      # Cache Terragrunt dependencies
+      - name: Cache Terragrunt
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.terragrunt-cache
+            .terragrunt-cache
+          key: ${{ runner.os }}-terragrunt-${{ hashFiles('**/*.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terragrunt-
 
-    - name: Run tfsec
-      uses: aquasecurity/tfsec-sarif-action@v0.1.4
-      with:
-        sarif_file: tfsec-results.sarif
-        working_directory: ..
-        
-    - name: Upload tfsec results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: tfsec-results.sarif
-        category: tfsec
+      - name: Terragrunt Init
+        id: init
+        run: terragrunt run-all init
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
-    - name: Terragrunt Init
-      id: init
-      run: terragrunt run-all init
-      env:
-        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+      - name: Terragrunt Validate
+        id: validate
+        run: terragrunt run-all validate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
-    - name: Terragrunt Validate
-      id: validate
-      run: terragrunt run-all validate
-      env:
-        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+  plan:
+    name: 'Plan Infrastructure Changes'
+    runs-on: ubuntu-latest
+    needs: validate
+    outputs:
+      has_changes: ${{ steps.check_plan.outputs.has_changes }}
+    defaults:
+      run:
+        working-directory: ./terragrunt
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Terragrunt Plan
-      id: plan
-      if: github.event_name == 'pull_request'
-      run: terragrunt run-all plan -out=tfplan
-      env:
-        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        TF_VAR_environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-      continue-on-error: true
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
-    - name: Update Pull Request
-      uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          #### Terragrunt Initialization ⚙️\`${{ steps.init.outcome }}\`
-          #### Terragrunt Validation 🤖\`${{ steps.validate.outcome }}\`
-          #### Terragrunt Plan 📖\`${{ steps.plan.outcome }}\`
+      - name: Install Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TG_VERSION }}/terragrunt_linux_amd64 -O /tmp/terragrunt
+          chmod +x /tmp/terragrunt
+          sudo mv /tmp/terragrunt /usr/local/bin/terragrunt
 
-          <details><summary>Show Plan</summary>
+      # Cache Terragrunt dependencies
+      - name: Cache Terragrunt
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.terragrunt-cache
+            .terragrunt-cache
+          key: ${{ runner.os }}-terragrunt-${{ hashFiles('**/*.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terragrunt-
 
-          \`\`\`terraform
-          ${{ steps.plan.outputs.stdout }}
-          \`\`\`
+      # Configure cloud credentials securely
+      - name: Configure Cloudflare Credentials OIDC
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: version # Just a no-op command to authenticate
 
-          </details>
+      - name: Terragrunt Plan
+        id: plan
+        run: |
+          set +e
+          terragrunt run-all plan -out=tfplan > plan_output.txt
+          exit_code=$?
+          set -e
+          cat plan_output.txt
+          
+          # Check if plan has changes
+          if grep -q "No changes" plan_output.txt; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Save plan output for PR comments
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            sed -n '/Terraform will perform the following actions/,$p' plan_output.txt > plan_changes.txt
+          fi
+          
+          # Exit with proper code
+          exit $exit_code
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+        continue-on-error: true
+      
+      - name: Save Plan Artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: |
+            ./terragrunt/tfplan
+            ./terragrunt/plan_changes.txt
 
-          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+      - name: Infracost - Calculate cost impact
+        if: github.event_name == 'pull_request'
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          
+      - name: Infracost - Generate cost report
+        if: github.event_name == 'pull_request'
+        run: |
+          infracost breakdown --format json --out-file infracost.json
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      
+      - name: Update Pull Request
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            let planChanges = '';
+            
+            try {
+              planChanges = fs.readFileSync('./terragrunt/plan_changes.txt', 'utf8');
+              if (planChanges.length > 65000) {
+                planChanges = planChanges.substring(0, 65000) + "\n\n... (truncated due to length)";
+              }
+            } catch (error) {
+              planChanges = 'Error reading plan output: ' + error.message;
+            }
+            
+            let costImpact = 'Cost impact analysis not available';
+            try {
+              if (fs.existsSync('./terragrunt/infracost.json')) {
+                const infracostData = JSON.parse(fs.readFileSync('./terragrunt/infracost.json', 'utf8'));
+                const diff = infracostData.totalMonthlyCost - infracostData.pastTotalMonthlyCost;
+                const diffFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(diff);
+                const totalFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(infracostData.totalMonthlyCost);
+                costImpact = `Estimated monthly cost impact: ${diffFormatted} (new total: ${totalFormatted})`;
+              }
+            } catch (error) {
+              costImpact += ` (error: ${error.message})`;
+            }
+            
+            const output = `### Infrastructure Plan Summary
+            
+            #### Terraform Format and Style 🖌 \`${{ steps.fmt.outcome }}\`
+            #### Infrastructure Changes 📊 \`${{ steps.plan.outputs.has_changes == 'true' && 'Changes detected' || 'No changes detected' }}\`
+            #### Cost Impact 💰 ${costImpact}
+            
+            <details><summary>Show Detailed Plan</summary>
+            
+            \`\`\`terraform
+            ${planChanges}
+            \`\`\`
+            
+            </details>
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: output
-          })
+  apply:
+    name: 'Apply Infrastructure Changes'
+    runs-on: ubuntu-latest
+    needs: plan
+    if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') && needs.plan.outputs.has_changes == 'true'
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}
+    defaults:
+      run:
+        working-directory: ./terragrunt
 
-    - name: Store Terraform Outputs
-      id: tf_outputs
-      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      run: |
-        terragrunt run-all output -json | jq -r 'to_entries | map("\(.key)=\(.value.value)") | .[]' > tf_outputs.env
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Terragrunt Apply
-      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      run: terragrunt run-all apply --terragrunt-non-interactive
-      env:
-        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        TF_VAR_environment: 'prod'
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
-    - name: Upload Terraform Outputs
-      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-outputs
-        path: ./terragrunt/tf_outputs.env
-        retention-days: 1
+      - name: Install Terragrunt
+        run: |
+          wget -q https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TG_VERSION }}/terragrunt_linux_amd64 -O /tmp/terragrunt
+          chmod +x /tmp/terragrunt
+          sudo mv /tmp/terragrunt /usr/local/bin/terragrunt
+
+      # Cache Terragrunt dependencies
+      - name: Cache Terragrunt
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.terragrunt-cache
+            .terragrunt-cache
+          key: ${{ runner.os }}-terragrunt-${{ hashFiles('**/*.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terragrunt-
+
+      # Configure cloud credentials securely
+      - name: Configure Cloudflare Credentials OIDC
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: version # Just a no-op command to authenticate
+
+      - name: Store Terraform Outputs
+        id: tf_outputs
+        run: |
+          # Initialize terragrunt first
+          terragrunt run-all init
+          
+          # Create empty file in case there are no outputs
+          touch tf_outputs.env
+          
+          # Run terragrunt output and save to file
+          terragrunt run-all output -json | jq -r 'to_entries | map("\(.key)=\(.value.value)") | .[]' > tf_outputs.env
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}
+
+      - name: Terragrunt Apply
+        run: terragrunt run-all apply --terragrunt-non-interactive
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}
+
+      - name: Upload Terraform Outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs
+          path: ./terragrunt/tf_outputs.env
+          retention-days: 1
+
+  notify:
+    name: 'Notification'
+    runs-on: ubuntu-latest
+    needs: [validate, plan, apply]
+    if: always()
+    steps:
+      - name: Check workflow status
+        id: check
+        run: |
+          if [[ "${{ needs.apply.result }}" == "success" ]]; then
+            echo "message=✅ Infrastructure deployment successful" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.apply.result }}" == "skipped" && "${{ needs.plan.result }}" == "success" ]]; then
+            echo "message=ℹ️ No infrastructure changes to apply" >> $GITHUB_OUTPUT
+            echo "color=good" >> $GITHUB_OUTPUT
+          else
+            echo "message=❌ Infrastructure deployment failed" >> $GITHUB_OUTPUT
+            echo "color=danger" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "text": "${{ steps.check.outputs.message }} for ${{ github.repository }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.check.outputs.message }}\n*Repository:* ${{ github.repository }}\n*Environment:* ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}\n*Triggered by:* ${{ github.actor }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
