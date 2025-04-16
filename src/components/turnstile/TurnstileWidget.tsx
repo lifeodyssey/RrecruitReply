@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { type ReactElement, useEffect, useRef } from 'react';
 
-import type { ReactElement } from 'react';
 import type { ITurnstileAPI } from '@/types/turnstile';
+
 
 // We're using the ITurnstileOptions from the imported type
 

@@ -2,6 +2,8 @@ import { cn } from '@/lib/utils';
 
 import type { ComponentProps, ReactElement } from 'react';
 
+
+
 const Input = ({ className, type, ...props }: ComponentProps<'input'>): ReactElement => (
   <input
     type={type}

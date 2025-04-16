@@ -2,6 +2,8 @@ import { cn } from '@/lib/utils';
 
 import type { ComponentProps, ReactElement } from 'react';
 
+
+
 const Card = ({ className, ...props }: ComponentProps<'div'>): ReactElement => (
   <div
     data-slot="card"

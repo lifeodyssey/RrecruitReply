@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import type * as LabelPrimitive from '@radix-ui/react-label';
 import type { ReactElement } from 'react';
 
+
 const Form = FormProvider;
 
 interface IFormFieldContextValue<
@@ -134,7 +135,7 @@ const FormDescription = ({ className, ...props }: React.ComponentProps<'p'>): Re
 
 const FormMessage = ({ className, ...props }: React.ComponentProps<'p'>): ReactElement => {
   const { error, formMessageId } = useFormField();
-  const body = error ? String(error?.message ?? '') : props.children;
+  const body = error ? String(error.message ?? '') : props.children;
 
   if (!body) {
     return null as unknown as ReactElement;

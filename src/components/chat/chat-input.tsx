@@ -23,7 +23,7 @@ export const ChatInput = ({ onSendMessage, isLoading }: IChatInputProps): React.
   };
 
   return (
-    <form className="flex w-full gap-2" onSubmit={handleSubmit}>
+    <form className="flex w-full gap-2" onSubmit={(e) => { void handleSubmit(e); }}>
       <Input
         placeholder="Type your message here..."
         className="flex-1"

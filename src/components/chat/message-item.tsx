@@ -29,8 +29,7 @@ export const MessageItem = ({ message }: IMessageItemProps): React.ReactElement 
       <p className="whitespace-pre-wrap">{message.content}</p>
 
       {/* Show sources if available */}
-      {message.sources && message.sources.length > 0 && (
-        <div className="mt-2 pt-2 border-t border-border">
+      {message.sources && message.sources.length > 0 ? <div className="mt-2 pt-2 border-t border-border">
           <p className="text-xs font-medium mb-1">Sources:</p>
           <div className="space-y-1">
             {message.sources.map((source) => (
@@ -40,8 +39,7 @@ export const MessageItem = ({ message }: IMessageItemProps): React.ReactElement 
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </div> : null}
     </div>
   </div>
 );

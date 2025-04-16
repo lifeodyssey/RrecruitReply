@@ -1,9 +1,11 @@
 import Link from 'next/link';
 
+
 import { ModeToggle } from '@/components/layout/mode-toggle';
 import { Button } from '@/components/ui/button';
 
 import type { ReactElement } from 'react';
+
 
 export const Header = (): ReactElement => (
   <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

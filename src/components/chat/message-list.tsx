@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
+
 import { LoadingMessage } from './loading-message';
 import { MessageItem } from './message-item';
 
 import type { IMessage } from '@/domain/models/chat';
+
 
 interface IMessageListProps {
   messages: IMessage[];
@@ -30,7 +32,7 @@ export const MessageList = ({ messages, isLoading }: IMessageListProps): React.R
       ))}
 
       {/* Loading indicator */}
-      {isLoading && <LoadingMessage />}
+      {isLoading ? <LoadingMessage /> : null}
 
       {/* Invisible div for scrolling to bottom */}
       <div ref={messagesEndRef} />

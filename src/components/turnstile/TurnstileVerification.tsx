@@ -1,7 +1,7 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { type ReactElement, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,12 +13,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useTurnstileVerification } from '@/hooks/useTurnstileVerification';
+
 import { TurnstileWidget } from './TurnstileWidget';
 
-import type { ReactElement } from 'react';
 
 // Get the site key from environment variables
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
 
 interface ITurnstileVerificationProps {
   onVerificationComplete: () => void;
@@ -40,7 +40,7 @@ export const TurnstileVerification = ({
   // If already verified, call the completion handler
   if (isVerified && !isLoading) {
     onVerificationComplete();
-    return <div data-testid="verification-complete"></div>;
+    return <div data-testid="verification-complete" />;
   }
 
   // Handle token verification
@@ -89,14 +89,12 @@ export const TurnstileVerification = ({
           <div className="flex flex-col items-center">
             <TurnstileWidget
               siteKey={TURNSTILE_SITE_KEY}
-              onVerify={handleVerify}
+              onVerify={(token) => { void handleVerify(token); }}
               onError={handleError}
               theme="auto"
               className="mx-auto"
             />
-            {verificationError && (
-              <p className="text-sm text-destructive mt-2">{verificationError}</p>
-            )}
+            {verificationError ? <p className="text-sm text-destructive mt-2">{verificationError}</p> : null}
           </div>
         ) : (
           <p className="text-sm text-destructive">
@@ -105,12 +103,10 @@ export const TurnstileVerification = ({
         )}
       </CardContent>
       <CardFooter className="flex justify-center">
-        {isVerifying && (
-          <Button disabled className="w-full">
+        {isVerifying ? <Button disabled className="w-full">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Verifying...
-          </Button>
-        )}
+          </Button> : null}
       </CardFooter>
     </Card>
   );

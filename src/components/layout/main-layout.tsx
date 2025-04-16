@@ -1,7 +1,9 @@
+
 import { Footer } from './footer';
 import { Header } from './header';
 
 import type { ReactElement, ReactNode } from 'react';
+
 
 interface IMainLayoutProps {
   children: ReactNode;

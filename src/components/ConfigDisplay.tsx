@@ -1,11 +1,13 @@
 'use client';
 
+
 import { AppConfig, CloudflareConfig } from '@/lib/config';
 
 import { Badge } from './ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 import type { ReactElement } from 'react';
+
 
 /**
  * Component that displays the current application configuration
@@ -52,7 +54,7 @@ export const ConfigDisplay = (): ReactElement => (
               { label: 'D1 Database', value: CloudflareConfig.d1.databaseName },
               {
                 label: 'KV Namespace',
-                value: CloudflareConfig.kv.namespaceId.substring(0, 8) + '...',
+                value: `${CloudflareConfig.kv.namespaceId.substring(0, 8)  }...`,
               },
             ]}
           />
