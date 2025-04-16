@@ -23,7 +23,7 @@ import type {
 export class AutoRAGClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = '/api/autorag') {
+  constructor(baseUrl = '/api/autorag') {
     this.baseUrl = baseUrl;
   }
 
@@ -34,7 +34,7 @@ export class AutoRAGClient {
    */
   private getApiUrl(endpoint: string): string {
     // In the browser
-    if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    if (window.location.origin) {
       return `${window.location.origin}${this.baseUrl}${endpoint}`;
     }
 
@@ -132,9 +132,10 @@ export class AutoRAGClient {
    * List all documents in the AutoRAG system
    */
   async listDocuments(): Promise<IDocument[]> {
-    // If we're in a test environment, return mock data immediately
-    if (process.env.NODE_ENV === 'test') {
-      return [
+    // If we're in a test environment or build environment (no window), return mock/empty data
+    if (process.env.NODE_ENV === 'test' || typeof window === 'undefined') {
+      // Return empty array during build, mock data during test
+      return process.env.NODE_ENV === 'test' ? [
         {
           id: '1',
           title: 'Sample Resume',
@@ -155,7 +156,7 @@ export class AutoRAGClient {
           timestamp: Date.now(),
           filename: 'job-description.pdf',
         },
-      ];
+      ] : [];
     }
 
     try {

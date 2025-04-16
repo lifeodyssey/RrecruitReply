@@ -1,9 +1,12 @@
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
-import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
-import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { type NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+import { ApiErrorHandler } from '@/application/utils/api-error-handler';
+import { getDocumentService } from '@/infrastructure/factories/document-service-factory';
+
+/**
+ * API route for querying documents in the AutoRAG system
+ */
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     const documentService = getDocumentService();
     const { query, conversationId } = await request.json();
@@ -17,7 +20,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const response = await documentService.query({ query, conversationId });
 
-    return NextResponse.json(response);
+    // Ensure we're returning a serializable object
+    // The response is already in DTO format from the service layer
+    return NextResponse.json({
+      answer: response.answer,
+      sources: response.sources
+    });
   } catch (error) {
     return ApiErrorHandler.handleError(error);
   }

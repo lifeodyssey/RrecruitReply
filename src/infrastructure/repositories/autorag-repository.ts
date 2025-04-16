@@ -46,7 +46,7 @@ export class AutoRAGRepository implements IDocumentRepository {
     };
 
     if (this.apiKey) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
+      headers.Authorization = `Bearer ${this.apiKey}`;
     }
 
     return headers;

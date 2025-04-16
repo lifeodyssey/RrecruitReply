@@ -1,7 +1,6 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY || '';
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY ?? '';
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /**
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const { token } = body;
 
     // Get the visitor's IP address
-    const ip = request.headers.get('CF-Connecting-IP') || '127.0.0.1';
+    const ip = request.headers.get('CF-Connecting-IP') ?? '127.0.0.1';
 
     // Validate the request
     if (!token || typeof token !== 'string') {

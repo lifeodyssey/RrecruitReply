@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AutoRagClient } from './index';
-import type { IAutoRagConfig } from './index';
+import { AutoRagClient, type IAutoRagConfig } from './index';
 
 describe('AutoRagClient', () => {
   const testConfig: IAutoRagConfig = {
@@ -26,11 +25,11 @@ describe('AutoRagClient', () => {
     expect(config.maxTokens).toBe(testConfig.maxTokens);
   });
 
-  it('should throw error on empty question', async () => {
+  it('should throw error on empty question', () => {
     const client = new AutoRagClient(testConfig);
 
-    await expect(client.query('')).rejects.toThrow('Question cannot be empty');
-    await expect(client.query('   ')).rejects.toThrow('Question cannot be empty');
+    expect(() => client.query('')).toThrow('Question cannot be empty');
+    expect(() => client.query('   ')).toThrow('Question cannot be empty');
   });
 
   it('should return a response for valid question', async () => {

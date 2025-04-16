@@ -1,8 +1,8 @@
+import type { IQueryRequestDto } from '@/application/dtos/document-dtos';
 import { MockDocumentRepository } from '@/infrastructure/mocks/mock-document-repository';
 
 import { DocumentService } from '../document-service';
 
-import type { IQueryRequestDto } from '@/application/dtos/document-dtos';
 
 describe('DocumentService', () => {
   let documentService: DocumentService;

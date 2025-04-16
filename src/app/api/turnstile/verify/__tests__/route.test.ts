@@ -272,7 +272,7 @@ describe('Turnstile Verification API', () => {
 
   it('should handle errors from Cloudflare', async () => {
     // Mock an error response from Cloudflare
-    (global.fetch as unknown as vi.Mock).mockResolvedValueOnce({
+    (global.fetch as unknown).mockResolvedValueOnce({
       ok: false,
       status: 500,
       json: async () => ({ success: false, error: 'Invalid request' }),

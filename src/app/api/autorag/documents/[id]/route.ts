@@ -14,9 +14,23 @@ export async function DELETE(
 ): Promise<Response> {
   try {
     const { id } = await context.params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Document ID is required' },
+        { status: 400 }
+      );
+    }
+
     const documentService = getDocumentService();
     const response = await documentService.deleteDocument(id);
-    return NextResponse.json(response);
+
+    // Ensure we're returning a serializable object
+    return NextResponse.json({
+      success: response.success,
+      documentId: response.documentId,
+      message: response.message
+    });
   } catch (error) {
     return ApiErrorHandler.handleError(error, 'Failed to delete document');
   }

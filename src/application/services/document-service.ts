@@ -20,6 +20,8 @@ import type {
 } from '@/domain/models/document';
 import type { IDocumentRepository } from '@/domain/repositories/document-repository';
 
+
+
 /**
  * Mapper interface for converting between domain models and DTOs
  */
@@ -64,7 +66,7 @@ export class DocumentService {
           answer: result.answer,
           sources: result.sources.map((source) => ({
             name: source.title,
-            url: source.url || source.source,
+            url: source.url ?? source.source,
           })),
         }),
       },
@@ -92,7 +94,7 @@ export class DocumentService {
    * @throws ValidationError if validation fails
    */
   private validateQueryRequest(queryDto: IQueryRequestDto): void {
-    if (!queryDto.query?.trim()) {
+    if (!queryDto?.query?.trim()) {
       throw new ValidationError('Query is required and cannot be empty');
     }
   }
@@ -153,7 +155,7 @@ export class DocumentService {
    * @returns Promise resolving to the delete response DTO
    */
   public async deleteDocument(documentId: string): Promise<IDeleteResponseDto> {
-    if (!documentId?.trim()) {
+    if (!documentId.trim()) {
       throw new ValidationError('Document ID is required and cannot be empty');
     }
 
@@ -166,7 +168,7 @@ export class DocumentService {
    *
    * @returns Promise resolving to an array of documents
    */
-  public async getAllDocuments(): Promise<IDocument[]> {
+  public getAllDocuments(): Promise<IDocument[]> {
     return this.repository.listDocuments();
   }
 
@@ -193,7 +195,7 @@ export class DocumentService {
    * @param document - The document to create
    * @returns Promise resolving to the created document
    */
-  public async createDocument(
+  public createDocument(
     document: Omit<IDocument, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<IDocument> {
     return this.repository.createDocument(document);
