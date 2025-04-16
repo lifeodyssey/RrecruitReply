@@ -27,7 +27,7 @@ const SearchParamsProvider = ({
   children: (callbackUrl: string) => React.ReactNode;
 }): ReactElement => {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/admin';
 
   return <>{children(callbackUrl)}</>;
 };
@@ -82,7 +82,7 @@ const LoginForm = ({ callbackUrl }: { callbackUrl: string }): ReactElement => {
           <CardDescription>Enter your email to sign in to the admin dashboard</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -109,15 +109,13 @@ const LoginForm = ({ callbackUrl }: { callbackUrl: string }): ReactElement => {
           </form>
         </CardContent>
         <CardFooter>
-          {message && (
-            <p
+          {message ? <p
               className={`text-sm w-full text-center ${
                 message.type === 'error' ? 'text-destructive' : 'text-green-600'
               }`}
             >
               {message.text}
-            </p>
-          )}
+            </p> : null}
         </CardFooter>
       </Card>
     </div>

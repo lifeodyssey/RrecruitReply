@@ -24,7 +24,7 @@ const SearchParamsProvider = ({
   children: (errorCode: string | null) => React.ReactNode;
 }): ReactElement => {
   const searchParams = useSearchParams();
-  const errorCode = searchParams?.get('error');
+  const errorCode = searchParams.get('error');
 
   return <>{children(errorCode)}</>;
 };
@@ -54,6 +54,9 @@ const ErrorContent = ({ errorCode }: { errorCode: string | null }): ReactElement
     case 'EmailSignin':
       errorTitle = 'Email Sign-in Error';
       errorMessage = 'The email could not be sent. Please try again later.';
+      break;
+    default:
+      // Default case already handled with initial values
       break;
   }
 

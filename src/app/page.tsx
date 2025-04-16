@@ -1,10 +1,12 @@
 import Link from 'next/link';
 
+
 import { MainLayout } from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import type { ReactElement } from 'react';
+
 
 /**
  * Feature card component for the home page

@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/auth/AuthProvider';
 import type { Metadata } from 'next';
 import type { ReactElement, ReactNode } from 'react';
 
+
 import './globals.css';
 
 const inter = Inter({

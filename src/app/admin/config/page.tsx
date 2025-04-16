@@ -5,8 +5,9 @@ import { AppConfig } from '@/lib/config';
 
 import type { Metadata } from 'next';
 
+
 export const metadata: Metadata = {
-  title: 'Infrastructure Configuration - ' + AppConfig.name,
+  title: `Infrastructure Configuration - ${  AppConfig.name}`,
   description: 'Admin panel for viewing infrastructure configuration from Terraform',
 };
 

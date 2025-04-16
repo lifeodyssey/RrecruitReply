@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ReactElement, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { MainLayout } from '@/components/layout/main-layout';
@@ -27,7 +27,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import type { IDocument } from '@/domain/models/document';
-import type { ReactElement } from 'react';
 
 const DocumentsPage = (): ReactElement => {
   const [documents, setDocuments] = useState<IDocument[]>([]);
@@ -254,7 +253,7 @@ const DocumentsPage = (): ReactElement => {
     }
 
     return documents.filter((doc) => {
-      const sourceName = doc.source?.name?.toLowerCase() || '';
+      const sourceName = doc.source?.name.toLowerCase() ?? '';
 
       if (type === 'resumes') {
         return sourceName.includes('resume') || sourceName.includes('cv');
@@ -287,7 +286,7 @@ const DocumentsPage = (): ReactElement => {
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleUpload}>
+              <form onSubmit={(e) => { void handleUpload(e); }}>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
                     <Label htmlFor="title">Title</Label>
@@ -339,28 +338,38 @@ const DocumentsPage = (): ReactElement => {
 
           {['all', 'resumes', 'job-descriptions', 'other'].map((tabValue) => (
             <TabsContent key={tabValue} value={tabValue}>
-              {isLoading ? (
-                <div className="flex justify-center items-center h-40">
-                  <p data-testid="loading-message">Loading documents...</p>
-                </div>
-              ) : getFilteredDocuments(tabValue).length === 0 ? (
-                <div className="flex justify-center items-center h-40">
-                  <p>No documents found. Upload some documents to get started.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {getFilteredDocuments(tabValue).map((document) => (
-                    <DocumentCard
-                      key={document.id}
-                      id={document.id}
-                      title={document.title}
-                      type={document.source?.name || ''}
-                      date={new Date(document.timestamp).toLocaleDateString()}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
-              )}
+              {(() => {
+                if (isLoading) {
+                  return (
+                    <div className="flex justify-center items-center h-40">
+                      <p data-testid="loading-message">Loading documents...</p>
+                    </div>
+                  );
+                }
+
+                if (getFilteredDocuments(tabValue).length === 0) {
+                  return (
+                    <div className="flex justify-center items-center h-40">
+                      <p>No documents found. Upload some documents to get started.</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {getFilteredDocuments(tabValue).map((document) => (
+                      <DocumentCard
+                        key={document.id}
+                        id={document.id}
+                        title={document.title}
+                        type={document.source?.name ?? ''}
+                        date={new Date(document.timestamp).toLocaleDateString()}
+                        onDelete={(id) => { void handleDelete(id); }}
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
             </TabsContent>
           ))}
         </Tabs>

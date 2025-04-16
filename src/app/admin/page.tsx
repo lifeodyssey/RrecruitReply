@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 
+
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/card';
 
 import type { ReactElement } from 'react';
+
 
 /**
  * Admin dashboard page
@@ -42,7 +44,7 @@ const AdminDashboardPage = (): ReactElement => {
 
   // Handle sign out
   const handleSignOut = (): void => {
-    signOut({ callbackUrl: '/' });
+    void signOut({ callbackUrl: '/' });
   };
 
   return (
@@ -101,7 +103,7 @@ const AdminDashboardPage = (): ReactElement => {
               </p>
               <p className="text-sm">
                 <span className="font-medium">Role:</span>{' '}
-                {(session?.user as { role?: string })?.role || 'admin'}
+                {session?.user ? ((session.user as { role?: string }).role ?? 'admin') : 'admin'}
               </p>
             </div>
           </CardContent>
