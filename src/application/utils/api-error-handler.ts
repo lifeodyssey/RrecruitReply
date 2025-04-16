@@ -101,7 +101,7 @@ export class ApiErrorHandler {
 
       // Return with appropriate status code
       const statusCode = this.getStatusCode(error);
-      return NextResponse.json({ ...errorResponse, status: statusCode }, { status: statusCode });
+      return NextResponse.json(errorResponse, { status: statusCode });
     }
 
     // For non-Error objects
@@ -117,7 +117,7 @@ export class ApiErrorHandler {
     }
 
     // Default to 500 Internal Server Error for unknown errors
-    return NextResponse.json({ ...errorResponse, status: 500 }, { status: 500 });
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 

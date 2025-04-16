@@ -34,24 +34,24 @@ class MockNextURL {
     defaultLocale?: string;
   };
   // URL properties
-  hash: string = '';
-  host: string = '';
-  hostname: string = '';
-  href: string = '';
+  hash = '';
+  host = '';
+  hostname = '';
+  href = '';
   readonly origin: string = '';
-  password: string = '';
-  pathname: string = '';
-  port: string = '';
-  protocol: string = '';
-  search: string = '';
+  password = '';
+  pathname = '';
+  port = '';
+  protocol = '';
+  search = '';
   readonly searchParams: URLSearchParams = new URLSearchParams();
-  username: string = '';
+  username = '';
 
   // NextURL properties
-  basePath: string = '';
-  buildId: string = '';
-  locale: string = '';
-  defaultLocale: string = '';
+  basePath = '';
+  buildId = '';
+  locale = '';
+  defaultLocale = '';
   domainLocale: { domain: string; defaultLocale: string; locales: string[] } | undefined =
     undefined;
 
@@ -156,18 +156,18 @@ class MockRequestCookies {
 class MockNextRequest {
   // Request properties
   url: string;
-  method: string = 'GET';
+  method = 'GET';
   headers: Headers;
   body: ReadableStream<Uint8Array> | null = null;
-  bodyUsed: boolean = false;
+  bodyUsed = false;
   cache: RequestCache = 'default';
   credentials: RequestCredentials = 'same-origin';
   destination: RequestDestination = '';
-  integrity: string = '';
-  keepalive: boolean = false;
+  integrity = '';
+  keepalive = false;
   mode: RequestMode = 'cors';
   redirect: RequestRedirect = 'follow';
-  referrer: string = '';
+  referrer = '';
   referrerPolicy: ReferrerPolicy = '';
   signal: AbortSignal = {
     aborted: false,
@@ -188,7 +188,7 @@ class MockNextRequest {
   // NextRequest properties
   nextUrl: MockNextURL;
   cookies: MockRequestCookies;
-  ip: string = '127.0.0.1';
+  ip = '127.0.0.1';
   geo: { city?: string; country?: string; region?: string } = {};
 
   // Define private properties for internal state

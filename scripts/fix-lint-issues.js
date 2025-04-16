@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+/* eslint-disable no-console */
 /**
  * Script to automatically fix common lint issues in the codebase
  * 

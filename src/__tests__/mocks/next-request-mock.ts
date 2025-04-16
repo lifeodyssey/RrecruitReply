@@ -37,24 +37,24 @@ interface _INextURLInternal {
 // Define the NextURL class that matches the expected interface
 export class MockNextURL implements URL {
   // URL properties
-  hash: string = '';
-  host: string = '';
-  hostname: string = '';
-  href: string = '';
+  hash = '';
+  host = '';
+  hostname = '';
+  href = '';
   readonly origin: string = '';
-  password: string = '';
-  pathname: string = '';
-  port: string = '';
-  protocol: string = '';
-  search: string = '';
+  password = '';
+  pathname = '';
+  port = '';
+  protocol = '';
+  search = '';
   readonly searchParams: URLSearchParams = new URLSearchParams();
-  username: string = '';
+  username = '';
 
   // NextURL properties
-  basePath: string = '';
-  buildId: string = '';
-  locale: string = '';
-  defaultLocale: string = '';
+  basePath = '';
+  buildId = '';
+  locale = '';
+  defaultLocale = '';
   domainLocale: { domain: string; defaultLocale: string; locales: string[] } | undefined =
     undefined;
 
@@ -147,7 +147,7 @@ class MockRequestCookies implements Map<string, string> {
     return this.cookies.get(key);
   }
 
-  getAll(): { name: string; value: string }[] {
+  getAll(): Array<{ name: string; value: string }> {
     return Array.from(this.cookies.entries()).map(([name, value]) => ({ name, value }));
   }
 
@@ -190,15 +190,15 @@ export class MockNextRequest implements Request {
   method: string;
   headers: Headers;
   body: ReadableStream<Uint8Array> | null = null;
-  bodyUsed: boolean = false;
+  bodyUsed = false;
   cache: RequestCache = 'default';
   credentials: RequestCredentials = 'same-origin';
   destination: RequestDestination = '';
-  integrity: string = '';
-  keepalive: boolean = false;
+  integrity = '';
+  keepalive = false;
   mode: RequestMode = 'cors';
   redirect: RequestRedirect = 'follow';
-  referrer: string = '';
+  referrer = '';
   referrerPolicy: ReferrerPolicy = '';
   signal: AbortSignal = {
     aborted: false,
@@ -232,8 +232,8 @@ export class MockNextRequest implements Request {
     options: { method?: string; headers?: HeadersInit; body?: string } = {}
   ) {
     this.url = url;
-    this.method = options.method || 'GET';
-    this.headers = new Headers(options.headers || {});
+    this.method = options.method ?? 'GET';
+    this.headers = new Headers(options.headers ?? {});
     this.nextUrl = new MockNextURL(url);
     this.cookies = new MockRequestCookies();
 

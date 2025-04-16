@@ -18,6 +18,7 @@
     "test:integration": "vitest run --testPathPattern=integration",
     "test:e2e": "vitest run --testPathPattern=e2e",
     "lint": "eslint .",
+    "lint:strict": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
     "lint:fix-all": "eslint . --fix --max-warnings=9999",
     "type-check": "tsc --noEmit",

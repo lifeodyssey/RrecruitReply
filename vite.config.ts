@@ -76,7 +76,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
-        ...(configDefaults.coverage.exclude || []),
+        ...(configDefaults.coverage.exclude ?? []),
         'src/test/**',
         '**/*.d.ts',
         '**/*.config.{js,ts}',

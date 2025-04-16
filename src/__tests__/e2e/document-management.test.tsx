@@ -94,7 +94,7 @@ describe('Document Management E2E', () => {
 
       values(): FormDataIterator<FormDataEntryValue> {
         const valuesArray = Array.from(this.data.values()).map(
-          (entry) => entry.value as FormDataEntryValue
+          (entry) => entry.value
         );
         return new FormDataIterator(valuesArray[Symbol.iterator]());
       }
@@ -107,7 +107,7 @@ describe('Document Management E2E', () => {
     global.File = class MockFile implements File {
       name: string;
       lastModified: number = Date.now();
-      webkitRelativePath: string = '';
+      webkitRelativePath = '';
       size: number;
       type: string;
       arrayBuffer: () => Promise<ArrayBuffer> = () => Promise.resolve(new ArrayBuffer(0));
@@ -118,12 +118,12 @@ describe('Document Management E2E', () => {
 
       constructor(
         _bits: BlobPart[] = [],
-        name: string = 'mock-file.txt',
+        name = 'mock-file.txt',
         options: FilePropertyBag = {}
       ) {
         this.name = name;
         this.size = 0;
-        this.type = options.type || 'text/plain';
+        this.type = options.type ?? 'text/plain';
         if (options.lastModified) {
           this.lastModified = options.lastModified;
         }

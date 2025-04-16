@@ -1,8 +1,7 @@
-import { vi } from 'vitest';
 import '@testing-library/jest-dom';
-import { afterEach, expect } from 'vitest';
-import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+import { cleanup } from '@testing-library/react';
+import { afterEach, expect, vi } from 'vitest';
 
 // Add DOM matchers
 expect.extend(matchers);
@@ -63,16 +62,27 @@ interface IFetchMockHandler {
   const originalFetch = global.fetch;
 
   // Replace global fetch with our mocked version
-  global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const requestUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-    const requestMethod = init?.method || 'GET';
+  global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    let requestUrl: string;
+    if (typeof input === 'string') {
+      requestUrl = input;
+    } else if (input instanceof URL) {
+      requestUrl = input.toString();
+    } else {
+      requestUrl = input.url;
+    }
+    const requestMethod = init?.method ?? 'GET';
 
     // If the URL and method match, use the handler
     if (requestUrl.includes(url) && requestMethod === method) {
       // Ensure the URL is a valid URL by prefixing with base URL if needed
-      const fullUrl = requestUrl.startsWith('http')
-        ? requestUrl
-        : `http://localhost:3000${requestUrl.startsWith('/') ? '' : '/'}${requestUrl}`;
+      let fullUrl: string;
+      if (requestUrl.startsWith('http')) {
+        fullUrl = requestUrl;
+      } else {
+        const separator = requestUrl.startsWith('/') ? '' : '/';
+        fullUrl = `http://localhost:3000${separator}${requestUrl}`;
+      }
 
       return handler(new Request(fullUrl, init));
     }
@@ -83,10 +93,21 @@ interface IFetchMockHandler {
     } catch (error) {
       // If it's a URL validation error, try to fix the URL and retry
       if (error instanceof TypeError && error.message.includes('Invalid URL')) {
-        const inputUrl = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-        const fullUrl = inputUrl.startsWith('http')
-          ? inputUrl
-          : `http://localhost:3000${inputUrl.startsWith('/') ? '' : '/'}${inputUrl}`;
+        let inputUrl: string;
+        if (typeof input === 'string') {
+          inputUrl = input;
+        } else if (input instanceof URL) {
+          inputUrl = input.toString();
+        } else {
+          inputUrl = input.url;
+        }
+        let fullUrl: string;
+        if (inputUrl.startsWith('http')) {
+          fullUrl = inputUrl;
+        } else {
+          const separator = inputUrl.startsWith('/') ? '' : '/';
+          fullUrl = `http://localhost:3000${separator}${inputUrl}`;
+        }
 
         return originalFetch(fullUrl, init);
       }

@@ -1,5 +1,4 @@
 import { http, HttpResponse } from 'msw';
-
 import type { DefaultBodyType, PathParams, StrictRequest } from 'msw';
 
 // Define types for request parameters
@@ -69,11 +68,11 @@ export const handlers = [
       // Try to parse as FormData first, then as JSON
       try {
         const formData = await request.clone().formData(); // Clone request to read body multiple times if needed
-        title = formData.get('title')?.toString() || title;
+        title = formData.get('title')?.toString() ?? title;
       } catch {
         try {
           const body = (await request.clone().json()) as { title?: string };
-          title = body?.title || title;
+          title = body.title ?? title;
         } catch {
           console.warn(
             'MSW handler: Could not parse request body for title in /api/autorag/upload. Using default.'

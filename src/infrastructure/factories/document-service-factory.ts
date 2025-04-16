@@ -6,6 +6,7 @@ import { AutoRAGRepository } from '@/infrastructure/repositories/autorag-reposit
 
 import type { IDocumentRepository } from '@/domain/repositories/document-repository';
 
+
 /**
  * Factory configuration for DocumentService
  */
@@ -19,7 +20,7 @@ interface IDocumentServiceConfig {
  */
 export class DocumentServiceFactory {
   private static config: IDocumentServiceConfig = {
-    baseUrl: process.env.AUTORAG_API_URL || 'https://api.autorag.workers.dev',
+    baseUrl: process.env.AUTORAG_API_URL ?? 'https://api.autorag.workers.dev',
     apiKey: process.env.AUTORAG_API_KEY,
   };
 

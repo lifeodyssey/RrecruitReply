@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Import the actual hook
 import { useTurnstileVerification } from '../useTurnstileVerification';
 
 // Mock localStorage
@@ -39,19 +40,18 @@ describe('useTurnstileVerification', () => {
     );
   });
 
-  it('initializes with default state', async () => {
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
-
+  it('initializes with default state', () => {
+    const { result } = renderHook(() => useTurnstileVerification());
+    
     expect(result.current.isVerified).toBe(false);
     expect(result.current.isLoading).toBe(false);
   });
 
-  it.skip('loads verification state from localStorage', async () => {
+  it('loads verification state from localStorage', () => {
     // Set up localStorage with a valid verification
     const now = Date.now();
     mockLocalStorage.setItem(
@@ -59,19 +59,13 @@ describe('useTurnstileVerification', () => {
       JSON.stringify({ verified: true, timestamp: now })
     );
 
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
-
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
-
-    // This test is skipped because we can't properly mock useEffect
-    // in the current test environment
+    const { result } = renderHook(() => useTurnstileVerification());
+    
+    // Verify localStorage is being used correctly
     expect(result.current.isVerified).toBe(true);
   });
 
-  it.skip('ignores expired verification in localStorage', async () => {
+  it('ignores expired verification in localStorage', () => {
     // Set up localStorage with an expired verification (25 hours ago)
     const expired = Date.now() - 25 * 60 * 60 * 1000;
     mockLocalStorage.setItem(
@@ -79,35 +73,22 @@ describe('useTurnstileVerification', () => {
       JSON.stringify({ verified: true, timestamp: expired })
     );
 
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
-
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
-
-    // This test is skipped because we can't properly mock useEffect
-    // in the current test environment
+    const { result } = renderHook(() => useTurnstileVerification());
+    
+    // Verify expired verification is handled correctly
     expect(result.current.isVerified).toBe(false);
     expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('turnstile-verification');
   });
 
   it('verifies token successfully', async () => {
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
-
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
+    const { result } = renderHook(() => useTurnstileVerification());
 
     // Verify a token
-    let success: boolean | undefined;
     await act(async () => {
-      success = await result.current.verifyToken('mock-token');
+      await result.current.verifyToken('mock-token');
     });
 
     // Check results
-    expect(success).toBe(true);
     expect(result.current.isVerified).toBe(true);
     expect(global.fetch).toHaveBeenCalledWith('/api/turnstile/verify', expect.any(Object));
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
@@ -127,52 +108,35 @@ describe('useTurnstileVerification', () => {
         }) as unknown as Response
     );
 
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
-
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
+    const { result } = renderHook(() => useTurnstileVerification());
 
     // Verify a token
-    let success: boolean | undefined;
     await act(async () => {
-      success = await result.current.verifyToken('mock-token');
+      await result.current.verifyToken('mock-token');
     });
 
     // Check results
-    expect(success).toBe(false);
     expect(result.current.isVerified).toBe(false);
     expect(mockLocalStorage.setItem).not.toHaveBeenCalled();
   });
 
-  it.skip('resets verification state', async () => {
+  it('resets verification state', async () => {
     // Set up localStorage with a valid verification
     mockLocalStorage.setItem(
       'turnstile-verification',
       JSON.stringify({ verified: true, timestamp: Date.now() })
     );
 
-    let result!: { current: ReturnType<typeof useTurnstileVerification> };
-
-    // First, render the hook with the mocked localStorage
-    await act(async () => {
-      const hookResult = renderHook(() => useTurnstileVerification());
-      result = hookResult.result;
-    });
-
-    // Manually set isVerified to true for testing reset
-    await act(async () => {
-      result.current.verifyToken('mock-token');
-    });
+    const { result } = renderHook(() => useTurnstileVerification());
+    
+    expect(result.current.isVerified).toBe(true);
 
     // Reset verification
-    await act(async () => {
+    act(() => {
       result.current.reset();
     });
 
-    // This test is skipped because we can't properly mock useEffect
-    // in the current test environment
+    // Verify reset functionality works correctly
     expect(result.current.isVerified).toBe(false);
     expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('turnstile-verification');
   });

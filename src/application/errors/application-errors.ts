@@ -106,7 +106,7 @@ export class ConflictError extends ApplicationError {
  * Error for internal server errors (500 Internal Server Error)
  */
 export class InternalServerError extends ApplicationError {
-  constructor(message: string = 'Internal server error') {
+  constructor(message = 'Internal server error') {
     super(message);
     this.name = 'InternalServerError';
   }
