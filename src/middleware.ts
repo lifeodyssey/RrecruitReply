@@ -1,6 +1,5 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 
 /**
@@ -10,7 +9,7 @@ import type { NextRequest } from "next/server";
  * If not authenticated, the user is redirected to the login page.
  */
 export async function middleware(request: NextRequest): Promise<NextResponse> {
-  const pathname = request.nextUrl.pathname;
+  const {pathname} = request.nextUrl;
 
   // Check if path is public (doesn't require authentication)
   if (isPublicPath(pathname)) {

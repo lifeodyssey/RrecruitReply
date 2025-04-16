@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+import { PrismaAdapter } from '@auth/prisma-adapter';
 import NextAuth from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
-import { PrismaAdapter } from '@auth/prisma-adapter';
+
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -33,28 +35,28 @@ const handler = NextAuth({
   providers: [
     EmailProvider({
       server: {
-        host: process.env.EMAIL_SERVER_HOST || '',
-        port: Number(process.env.EMAIL_SERVER_PORT) || 587,
+        host: process.env.EMAIL_SERVER_HOST ?? '',
+        port: Number(process.env.EMAIL_SERVER_PORT) ?? 587,
         auth: {
-          user: process.env.EMAIL_SERVER_USER || '',
-          pass: process.env.EMAIL_SERVER_PASSWORD || '',
+          user: process.env.EMAIL_SERVER_USER ?? '',
+          pass: process.env.EMAIL_SERVER_PASSWORD ?? '',
         },
       },
-      from: process.env.EMAIL_FROM || 'noreply@recruitreply.com',
+      from: process.env.EMAIL_FROM ?? 'noreply@recruitreply.com',
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
+    signIn({ user }) {
       // Only allow specific email address(es)
-      const allowedEmails = (process.env.ALLOWED_ADMIN_EMAILS || '').split(',');
+      const allowedEmails = process.env.ALLOWED_ADMIN_EMAILS ? process.env.ALLOWED_ADMIN_EMAILS.split(',') : [];
       // Ensure user.email is not null or undefined before checking includes
       return !!user.email && allowedEmails.includes(user.email);
     },
-    async session({ session, user }) {
+    session({ session, user }) {
       // Add role to session
       if (session.user) {
         // Ensure user object exists and has a role property before assigning
-        (session.user as IUser).role = (user as IUser)?.role || 'admin';
+        (session.user as IUser).role = (user as IUser).role ?? 'admin';
       }
       return session;
     },
